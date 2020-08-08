@@ -1,0 +1,10 @@
+line-bot-sdk
+Flask
+requests
+bs4
+lxml
+psycopg2
+selenium
+opencc-python-reimplemented
+pypinyin
+regex
