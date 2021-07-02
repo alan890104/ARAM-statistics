@@ -1,4 +1,7 @@
 # ARAM勝率分析
+
+[![hackmd-github-sync-badge](https://hackmd.io/lTFPJuA6Rn-kpDqh8slQww/badge)](https://hackmd.io/lTFPJuA6Rn-kpDqh8slQww)
+
 - **簡介**: 分析台灣玩家在當前版本的ARAM勝率，並且有ARAM推薦符文、推薦出裝、推薦技能次序、檢視玩家最近資訊等功能。
 
   -目前有新增一些關於NG、RANK等等的統計
@@ -19,7 +22,7 @@
 
 ## 主架構
 * <font color="green">綠色</font>未完成 <font color="red">紅色</font>待修改 <font color="orange">橘色</font>重點項目
-```graphviz
+```graphviz=
 digraph hierarchy {
 
 		nodesep=1.0 // increases the separation between nodes
