@@ -1,0 +1,58 @@
+{
+    "21": [
+        "SummonerBarrier",
+        "光盾"
+    ],
+    "1": [
+        "SummonerBoost",
+        "淨化"
+    ],
+    "14": [
+        "SummonerDot",
+        "點燃"
+    ],
+    "3": [
+        "SummonerExhaust",
+        "虛弱"
+    ],
+    "4": [
+        "SummonerFlash",
+        "閃現"
+    ],
+    "6": [
+        "SummonerHaste",
+        "鬼步"
+    ],
+    "7": [
+        "SummonerHeal",
+        "治癒"
+    ],
+    "13": [
+        "SummonerMana",
+        "清晰"
+    ],
+    "30": [
+        "SummonerPoroRecall",
+        "為了吾王！"
+    ],
+    "31": [
+        "SummonerPoroThrow",
+        "普羅投擲"
+    ],
+    "11": [
+        "SummonerSmite",
+        "重擊"
+    ],
+    "39": [
+        "SummonerSnowURFSnowball_Mark",
+        "標記"
+    ],
+    "32": [
+        "SummonerSnowball",
+        "標記"
+    ],
+    "12": [
+        "SummonerTeleport",
+        "傳送"
+    ]
+}
