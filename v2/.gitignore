@@ -1,3 +1,5 @@
 secret
 test.py
 *.json
+example
+__pycache__

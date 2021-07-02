@@ -169,12 +169,12 @@ def JsonRead(filename: os.PathLike) -> dict:
     return data
 
 class HistoryReader():
-    def __init__(self,r) -> None:
+    def __init__(self,history: dict) -> None:
         '''Parse the result from GetPlayerHistory() function '''
-        self.platformId = r['platformId']
-        self.accountId = r['accountId']
-        self.games = self._Games(**r['games'])
-        self.shownQueues = r['shownQueues']
+        self.platformId = history['platformId']
+        self.accountId = history['accountId']
+        self.games = self._Games(**history['games'])
+        self.shownQueues = history['shownQueues']
     def format(self) -> dict:
         '''format important attribute'''
         obj = dict()
@@ -223,7 +223,11 @@ class HistoryReader():
     def versions(self) -> list:
         '''Get the version list of all games'''
         return list(set([self.games.games[x].gameVersion for x in range(self.__len__())]))
+    def gameids(self) -> list:
+        '''Return all gameids'''
+        return [self.games.games[x].gameId for x in range(self.__len__())]
     def totalGames(self) -> int:
+        '''Return game count'''
         return self.games.gameCount
     def index(self) -> tuple:
         '''Return tuple (Start index, End index)'''
@@ -377,12 +381,12 @@ class HistoryReader():
                             self.__dict__[x] = kwargs[x]
 
 class TimeLineReader():
-    def __init__(self,frame: dict) -> None:
+    def __init__(self,timeline: dict) -> None:
         '''
         ### Read Time line data and display.
         '''
-        self.frame_interval = frame['frameInterval']
-        self.frame = [self.OneFrameReader(x) for x in frame['frames']]
+        self.frame_interval = timeline['frameInterval']
+        self.frame = [self.OneFrameReader(x) for x in timeline['frames']]
     def display(self):
         print("==========================")
         print("= Game Total Time: {}min =".format(len(self.frame)))
@@ -458,11 +462,13 @@ class TimeLineReader():
                 '''
                 for x in kwargs:
                     self.__dict__[x] = kwargs[x]
-    
-if __name__=="__main__":
-    # id = GetAccountID("alankingdom")
-    # r = GetPlayerHistory(id,Begin=140,End=160)
-    # JsonWrite(r,'data.json')
-    r = JsonRead('data.json')
-    HR = HistoryReader(r).result()
-    print(sum(HR)/len(HR))
+
+def _tPlayerHistory():
+    id = GetAccountID("X嘻哈酷老頭兒X")
+    history = GetPlayerHistory(id)
+    HR = HistoryReader(history)
+    print(HR.gameids())
+
+def _tGetGameTimeline():
+    timeline = GetGameTimeline(1940205360)
+    TimeLineReader(timeline).display()
