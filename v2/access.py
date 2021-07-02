@@ -177,11 +177,52 @@ class HistoryReader():
         self.shownQueues = r['shownQueues']
     def format(self) -> dict:
         '''format important attribute'''
-        pass
+        obj = dict()
+        obj['accountId'] = self.accountId
+        obj['playerName'] = self.playerName()
+        game_list = list()
+        for g in self.games.games:
+            game_info = dict()
+            game_info['gameId'] = g.gameId
+            game_info['gameMode'] = g.gameMode
+            game_info['version'] = g.gameVersion
+            game_info['teamId'] = g.participants.teamId
+            game_info['championId'] = g.participants.championId
+            stats_dict = dict()
+            stats = g.participants.stats
+            stats_dict['win'] = stats.win
+            stats_dict['item'] = [stats.__dict__['item{}'.format(x)] for x in range(7)]
+            stats_dict['kda'] = (stats.kills,stats.deaths,stats.assists)
+            stats_dict['largestKillingSpree'] = stats.largestKillingSpree
+            stats_dict['largestMultiKill'] = stats.largestMultiKill
+            stats_dict['doubleKills'] = stats.doubleKills
+            stats_dict['tripleKills'] = stats.tripleKills
+            stats_dict['quadraKills'] = stats.quadraKills
+            stats_dict['pentaKills'] = stats.pentaKills
+            stats_dict['unrealKills'] = stats.unrealKills
+            stats_dict['totalDamageDealt'] = stats.totalDamageDealt
+            stats_dict['largestCriticalStrike'] = stats.largestCriticalStrike
+            stats_dict['totalHeal'] = stats.totalHeal
+            stats_dict['visionScore'] = stats.visionScore
+            stats_dict['timeCCingOthers'] = stats.timeCCingOthers
+            stats_dict['totalDamageTaken'] = stats.totalDamageTaken
+            stats_dict['goldEarned'] = stats.goldEarned
+            stats_dict['totalMinionsKilled'] = stats.neutralMinionsKilled+stats.totalMinionsKilled
+            stats_dict['buildingKills'] = stats.turretKills+stats.inhibitorKills
+            stats_dict['champLevel'] = stats.champLevel
+            stats_dict['firstBloodKill'] = stats.firstBloodKill
+            stats_dict['firstTowerKill'] = stats.firstTowerKill
+            game_info['stats'] = stats_dict
+            game_list.append(game_info)
+        obj['gamelist'] = game_list
+        return obj   
+    def result(self) -> list:
+        return [self.games.games[x].participants.stats.win for x in range(self.__len__())]
+    def playerName(self) -> str:
+        return self.games.games[0].participantIdentities.player.summonerName
     def versions(self) -> list:
         '''Get the version list of all games'''
-        interval = self.games.gameIndexEnd-self.games.gameIndexBegin
-        return list(set([self.games.games[x].gameVersion for x in range(interval)]))
+        return list(set([self.games.games[x].gameVersion for x in range(self.__len__())]))
     def totalGames(self) -> int:
         return self.games.gameCount
     def index(self) -> tuple:
@@ -191,6 +232,8 @@ class HistoryReader():
         '''Return total playing time in second'''
         interval = self.games.gameIndexEnd-self.games.gameIndexBegin
         return sum([self.games.games[x].gameDuration for x in range(interval)])
+    def __len__(self):
+        return self.games.gameIndexEnd-self.games.gameIndexBegin
     class _Games:
         def __init__(self,**kwargs) -> None:
             self.gameIndexBegin = kwargs['gameIndexBegin']
@@ -333,9 +376,6 @@ class HistoryReader():
                         for x in kwargs:
                             self.__dict__[x] = kwargs[x]
 
-class GameDetailReader():
-    pass
-
 class TimeLineReader():
     def __init__(self,frame: dict) -> None:
         '''
@@ -424,5 +464,5 @@ if __name__=="__main__":
     # r = GetPlayerHistory(id,Begin=140,End=160)
     # JsonWrite(r,'data.json')
     r = JsonRead('data.json')
-    HR = HistoryReader(r)
-    print(HR.totalGames(),HR.versions())
+    HR = HistoryReader(r).result()
+    print(sum(HR)/len(HR))
