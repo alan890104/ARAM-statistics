@@ -3,3 +3,5 @@ test.py
 *.json
 example
 __pycache__
+*.exe
+*.db
