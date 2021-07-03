@@ -5,4 +5,3 @@ example
 __pycache__
 *.exe
 *.db
-crawler.py
