@@ -188,12 +188,12 @@ def ELOTransform(Tier: dict,value: int) -> str:
             return Tier[key[mid]]
     return Tier[key[left]] if left==0 or value>=key[left] else Tier[key[left-1]]
 
-def JsonWrite(data: dict, filename: os.PathLike) -> None:
-    with open(filename,'w',encoding='utf-8') as F:
+def JsonWrite(data: dict, filename: os.PathLike, mode='w') -> None:
+    with open(filename,mode,encoding='utf-8') as F:
         json.dump(data,F,ensure_ascii=False,indent=4)
 
-def JsonRead(filename: os.PathLike) -> dict:
-    with open(filename,'r',encoding='utf-8') as F:
+def JsonRead(filename: os.PathLike, mode='r') -> dict:
+    with open(filename,mode,encoding='utf-8') as F:
         data = json.load(F)
     return data
 
@@ -204,7 +204,7 @@ class HistoryReader():
         self.accountId = history['accountId']
         self.games = self._Games(**history['games'])
         self.shownQueues = history['shownQueues']
-    def format(self) -> dict:
+    def form(self) -> dict:
         '''format important attribute'''
         obj = dict()
         obj['accountId'] = self.accountId
@@ -247,6 +247,48 @@ class HistoryReader():
             game_list.append(game_info)
         obj['gamelist'] = game_list
         return obj   
+    def format_list(self) -> list:
+        '''### DESIGN FOR -> INSERT INTO GAME TABLE
+        - format important attribute '''
+        game_list = list()
+        for g in self.games.games:
+            game_info = list()
+            game_info.append(g.gameId)
+            game_info.append(self.accountId)
+            game_info.append(g.gameMode)
+            game_info.append(g.gameVersion)
+            game_info.append(g.gameCreation)
+            game_info.append(g.gameDuration)
+            game_info.append(g.participants.teamId)
+            game_info.append(g.participants.championId)
+            stats = g.participants.stats
+            game_info.append(stats.win)
+            game_info.append(" ".join([str(stats.__dict__['item{}'.format(x)]) for x in range(7)]))
+            game_info.append(stats.kills)
+            game_info.append(stats.deaths)
+            game_info.append(stats.assists)
+            game_info.append(stats.largestKillingSpree)
+            game_info.append(stats.largestMultiKill)
+            game_info.append(stats.doubleKills)
+            game_info.append(stats.tripleKills)
+            game_info.append(stats.quadraKills)
+            game_info.append(stats.pentaKills)
+            game_info.append(stats.unrealKills)
+            game_info.append(stats.totalDamageDealt)
+            game_info.append(stats.totalHeal)
+            game_info.append(stats.totalDamageTaken)
+            game_info.append(stats.timeCCingOthers)
+            game_info.append(stats.visionScore)            
+            game_info.append(stats.goldEarned)
+            game_info.append(stats.neutralMinionsKilled+stats.totalMinionsKilled)
+            game_info.append(stats.turretKills+stats.inhibitorKills)
+            game_info.append(stats.champLevel)
+            game_info.append(stats.firstBloodKill)
+            game_info.append(stats.firstTowerKill)
+            game_info.append(g.participants.timeline.role)
+            game_info.append(g.participants.timeline.lane)
+            game_list.append(game_info)
+        return game_list   
     def result(self) -> list:
         '''Win or Lose list of all games'''
         return [self.games.games[x].participants.stats.win for x in range(self.__len__())]
@@ -282,16 +324,18 @@ class HistoryReader():
             self.games = [self._SingleGameReader(**k) for k in kwargs['games']]
         class _SingleGameReader:
             def __init__(self,**kwargs) -> None:
-                self.gameId = kwargs['gameId']
-                self.platformId = kwargs['platformId']
-                self.gameCreation = kwargs['gameCreation']
-                self.gameDuration = kwargs['gameDuration']
-                self.queueId = kwargs['queueId']
-                self.mapId = kwargs['mapId']
-                self.seasonId = kwargs['seasonId']
-                self.gameVersion = kwargs['gameVersion']
-                self.gameMode = kwargs['gameMode']
-                self.gameType = kwargs['gameType']
+                self.gameId = None
+                self.platformId = None
+                self.gameCreation = None
+                self.gameDuration = None
+                self.queueId = None
+                self.mapId = None
+                self.seasonId = None
+                self.gameVersion = None
+                self.gameMode = None
+                self.gameType = None
+                for x in kwargs:
+                    self.__dict__[x] = kwargs[x]
                 self.participants = self._Participants(**kwargs['participants'][0])
                 self.participantIdentities = self._ParticipantIdentities(kwargs['participantIdentities'][0]['participantId'],kwargs['participantIdentities'][0]['player'])
             class _Participants:
@@ -368,6 +412,9 @@ class HistoryReader():
                         - perkSubStyle
                         - statPerk0~2
                         '''
+                        self.firstBloodKill = False
+                        self.firstInhibitorKill = False
+                        self.firstTowerKill = False
                         for x in kwargs:
                             self.__dict__[x] = kwargs[x]
                 class _TimelineReader:
