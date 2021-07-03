@@ -1,6 +1,8 @@
-import sqlite3
+import datetime
 import os
 import typing
+import sqlite3
+from datetime import timedelta
 
 class DBAgent():
     def __init__(self, path:os.PathLike=None) -> None:
@@ -23,17 +25,19 @@ class DBAgent():
             d[col[0]] = row[idx]
         return d
 
+    def _ListExistTable(self) -> dict:
+        self.__cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        return [ _['name'] for _ in self.__cur.fetchall()]
+        
     def _CreateTableUser(self) -> None:
         self.__cur.execute("CREATE TABLE IF NOT EXISTS users( \
-                    LineId TEXT PRIMARY KEY,\
-                    accoundId TEXT UNIQUE,\
-                    LineName TEXT NOT NULL UNIQUE,\
-                    LOLName TEXT NOT NULL UNIQUE ) ")
+                            accountId INT UNIQUE PRIMARY KEY,\
+                            LOLName TEXT NOT NULL UNIQUE ) ")
         self.__con.commit()
 
     def _CreateTableELO(self) -> None:
         self.__cur.execute("CREATE TABLE  IF NOT EXISTS elo(\
-                    accoundId TEXT PRIMARY KEY,\
+                    accoundId INT PRIMARY KEY,\
                     gameMode TEXT NOT NULL,\
                     sqltime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\
                     FOREIGN KEY (accoundId) REFERENCES users (accoundId) )")
@@ -82,6 +86,10 @@ class DBAgent():
         self._CreateTableELO()
         self._CreateTableGame()
         
+    def _DestroyTableUser(self) -> None:
+        self.__cur.execute("DROP TABLE IF EXISTS users")
+        self.__con.commit()
+
     def _InsertUser(self,param: typing.Iterable) -> None:
         self.__cur.execute("INSERT INTO users VALUES ({})".format(",".join("?"*len(param))) ,param)
         self.__con.commit()
@@ -102,6 +110,19 @@ class DBAgent():
     def _Query(self, sql: str, param: list=[]) -> dict:
         self.__cur.execute(sql,param)
         return self.__cur.fetchall()
+    
+    def GetUserDict(self, reverse=False) -> dict:
+        '''
+        ### Parameter
+        - reverse
+            - True  : a mapping from name to accountId
+            - False : a mapping from accountId to name
+        '''
+        self.__cur.execute("SELECT * FROM users")
+        if reverse:
+            return { _['LOLName']:_['accountId'] for _ in self.__cur.fetchall()}
+        else:
+            return { _['accountId']:_['LOLName'] for _ in self.__cur.fetchall()}
 
     def GetIdByUsers(self) -> list:
         self.__cur.execute("SELECT DISTINCT accountId FROM users")
@@ -118,6 +139,51 @@ class DBAgent():
     def GetRecentGameIds(self,accountId: str, size: int=20) -> list:
         self.__cur.execute("SELECT gameId FROM game WHERE accountId=? ORDER BY gameCreation DESC",[accountId,])
         return [ _['gameId'] for _ in self.__cur.fetchmany(size)]
+
+    def GetWinRateByCond(self,accountId: str, category=False, threshold=10, **kwargs) -> dict:
+        '''
+        ### Parameters:
+        - accountId : your id
+        - category:
+            - True  : Return winrate corresponding to gameMode(need to more than threshold)
+            - False : Return overall winrate
+        - gameCreation : INT specify the game create after param in milliseconds
+        - gameDuration : INT specify the gameduration shorter than the param in senconds
+        - teamId: INT 100(blue) 200(red)
+        - championId : INT
+        - role : str
+        - lane : str
+        '''
+        condition = " accountId=? "
+        if "gameCreation" in kwargs:
+            condition += " AND gameCreation>? "
+        if "gameDuration" in kwargs:
+            condition += " AND gameDuration<? "
+        if "teamId" in kwargs:
+            condition += " AND teamId=? "
+        if "championId" in kwargs:
+            condition += " AND championId=? "
+        if "role" in kwargs:
+            condition += " AND role=? "
+        if "lane" in kwargs:
+            condition += " AND lane=? "
+
+        input_param = [accountId]
+        input_param.extend(list(kwargs.values()))
+
+        if not category:
+            self.__cur.execute("SELECT ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\
+                WHERE {}".format(condition),input_param)
+            return {"all":self.__cur.fetchone()['ratio']}
+        else:
+            self.__cur.execute("SELECT gameMode,ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\
+                WHERE {} GROUP BY gameMode HAVING COUNT(win)>{} ORDER BY ratio DESC".format(condition,threshold),input_param)
+            return { _['gameMode']:_['ratio'] for _ in self.__cur.fetchall() }
+
+    def GetTotalPlayingTime(self,accountId: str) -> datetime.timedelta:
+        '''### Total playing time in second'''
+        self.__cur.execute("SELECT SUM(gameDuration) as time FROM game WHERE accountId=?",[accountId,])
+        return timedelta(seconds=self.__cur.fetchone()['time'])
 
 if __name__ == "__main__":
     pass

@@ -1,9 +1,9 @@
-import database as db
+import Database
 import AccessGameData as AGD
 import datetime
 import time
 
-def UpdateGameData():
+def UpdateGameData(Agent: Database.DBAgent):
     '''
     ### To update the game table EVERY INTERVAL
     #### Step:
@@ -12,7 +12,6 @@ def UpdateGameData():
     3. Find the difference by new - old
     4. Write into game table
     '''
-    Agent = db.DBAgent()
     IdList = Agent.GetIdByGame()
     for id in IdList:
         OldData = Agent.GetRecentGameIds(id)
@@ -24,14 +23,12 @@ def UpdateGameData():
         for gameid in diff:
             idx = NewData.index(gameid)
             Agent._InsertGame(history_list[idx])
-    now = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    print("UpdateGameData Complete at {}".format(now))
 
 def _GameCrawler():
     '''
     ### Initialize the database with game data
     '''
-    Agent = db.DBAgent()
+    Agent = Database.DBAgent()
     Agent._CreateTableGame()
     ERRORS = []
     for name in ['alankingdom','WhiteClover','7184奇異博士','X嘻哈酷老頭兒X']:
@@ -45,9 +42,8 @@ def _GameCrawler():
             except Exception as e:
                 print(e)
                 ERRORS.append([name,idx])
-    now = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     if len(ERRORS)!=0:
-        AGD.JsonWrite({"errors":ERRORS},'log-{}.json'.format(now))
+        AGD.JsonWrite({"errors":ERRORS},'log.json')
 
 
 
