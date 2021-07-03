@@ -7,6 +7,8 @@ import json
 import typing
 import requests
 
+Tier = {0:"鐵牌Ⅳ",671:"鐵牌Ⅲ",712:"鐵牌Ⅱ",754:"鐵牌Ⅰ",834:"銅牌Ⅳ",937:"銅牌Ⅲ",1018:"銅牌Ⅱ",1073:"銅牌Ⅰ",1127:"銀牌Ⅳ",1196:"銀牌Ⅲ",1259:"銀牌Ⅱ",1306:"銀牌Ⅰ",1594:"金牌Ⅳ",1722:"金牌Ⅲ",1781:"金牌Ⅱ",1867:"金牌Ⅰ",1926:"白金Ⅳ",2019:"白金Ⅲ",2163:"白金Ⅱ",2222:"白金Ⅰ",2435:"鑽石Ⅳ",2537:"鑽石Ⅲ",2586:"鑽石Ⅱ",2650:"鑽石Ⅰ",2713:"大師",2803:"宗師",2876:"菁英"}
+
 GPREFIX = "https://acs-garena.leagueoflegends.com/v1/"
 DPREFIX = "https://ddragon.leagueoflegends.com/"
 
@@ -159,6 +161,33 @@ def GetGameTimeline(GameId: int)-> dict:
     res = requests.get(GPREFIX+"stats/game/TW/{}/timeline".format(GameId))
     return res.json()
 
+def GetELO():
+    pass
+    # r = scraper.get("https://lol.moa.tw/match/show/1941288255/16803530")
+    # return r.text
+
+def ELOTransform(Tier: dict,value: int) -> str:
+    '''
+    ### Parameter
+    - ref : a dict of reference tier
+    - value : your ELO (隱分)
+
+    ### Return
+    - str : your tier
+    '''
+    key = list(Tier.keys())
+    left = 0
+    right = len(key)-1
+    while left<right:
+        mid = (left+right)//2
+        if value>key[mid]:
+            left = mid+1
+        elif value<key[mid]:
+            right = mid
+        else:
+            return Tier[key[mid]]
+    return Tier[key[left]] if left==0 or value>=key[left] else Tier[key[left-1]]
+
 def JsonWrite(data: dict, filename: os.PathLike) -> None:
     with open(filename,'w',encoding='utf-8') as F:
         json.dump(data,F,ensure_ascii=False,indent=4)
@@ -170,7 +199,7 @@ def JsonRead(filename: os.PathLike) -> dict:
 
 class HistoryReader():
     def __init__(self,history: dict) -> None:
-        '''Parse the result from GetPlayerHistory() function '''
+        '''### Parse the result from GetPlayerHistory() function '''
         self.platformId = history['platformId']
         self.accountId = history['accountId']
         self.games = self._Games(**history['games'])
@@ -185,7 +214,9 @@ class HistoryReader():
             game_info = dict()
             game_info['gameId'] = g.gameId
             game_info['gameMode'] = g.gameMode
-            game_info['version'] = g.gameVersion
+            game_info['gameVersion'] = g.gameVersion
+            game_info['gameCreation'] = g.gameCreation
+            game_info['gameDuration'] = g.gameDuration
             game_info['teamId'] = g.participants.teamId
             game_info['championId'] = g.participants.championId
             stats_dict = dict()
@@ -217,9 +248,12 @@ class HistoryReader():
         obj['gamelist'] = game_list
         return obj   
     def result(self) -> list:
+        '''Win or Lose list of all games'''
         return [self.games.games[x].participants.stats.win for x in range(self.__len__())]
-    def playerName(self) -> str:
-        return self.games.games[0].participantIdentities.player.summonerName
+    def playerinfo(self) -> dict:
+        '''Return summonerName, summonerId and accountId'''
+        play = self.games.games[0].participantIdentities.player
+        return {"summonerName":play.summonerName,"summonerId":play.summonerId,"accountId":play.accountId}
     def versions(self) -> list:
         '''Get the version list of all games'''
         return list(set([self.games.games[x].gameVersion for x in range(self.__len__())]))
@@ -387,7 +421,9 @@ class TimeLineReader():
         '''
         self.frame_interval = timeline['frameInterval']
         self.frame = [self.OneFrameReader(x) for x in timeline['frames']]
-    def display(self):
+    def display(self,f: typing.Callable=None):
+        '''Simulate the timeline with transfer function f'''
+        if f==None: f = lambda x: "player"+str(x)
         print("==========================")
         print("= Game Total Time: {}min =".format(len(self.frame)))
         print("==========================")
@@ -398,15 +434,15 @@ class TimeLineReader():
             for e in tmp_x:
                 timestamp = round((x.timestamp/60000-e.timestamp/60000)*60,3)
                 if e.type=='ITEM_PURCHASED':
-                    print("\tPlayer{} purchased item id-{} at {}s".format(e.participantId,e.itemId,timestamp))
+                    print("\t{} purchased item id-{} at {}s".format(f(e.participantId),e.itemId,timestamp))
                 elif e.type=='ITEM_DESTROYED':
-                    print("\tPlayer{} destroted item id-{} at {}s".format(e.participantId,e.itemId,timestamp))
+                    print("\t{} destroted item id-{} at {}s".format(f(e.participantId),e.itemId,timestamp))
                 elif e.type=='CHAMPION_KILL':
-                    print("\tPlayer{} killed player{} in ({},{}) at {}s".format(e.killerId,e.victimId,e.position['x'],e.position['y'],timestamp))
+                    print("\t{} killed {} in ({},{}) at {}s".format(f(e.killerId),f(e.victimId),e.position['x'],e.position['y'],timestamp))
             print()
             for ptf in x.ptframe:
                 try:
-                    print("\tPlayer{} at ({},{}):".format(ptf.participantId,ptf.position['x'],ptf.position['y']))
+                    print("\t{} at ({},{}):".format(f(ptf.participantId),ptf.position['x'],ptf.position['y']))
                     print("\t\t- level: {}".format(ptf.level))
                     print("\t\t- totalGold: {}".format(ptf.totalGold))
                     print("\t\t- currentGold: {}".format(ptf.currentGold))
@@ -463,12 +499,74 @@ class TimeLineReader():
                 for x in kwargs:
                     self.__dict__[x] = kwargs[x]
 
+class GameDetailMatching():
+    def __init__(self,detail: dict) -> None:
+        '''### Transfrom to a mapping with participant ID and name'''
+        self.gameId = detail['gameId']
+        self.gameCreation = detail['gameCreation']
+        self.gameDuration = detail['gameDuration']
+        self.mapId = detail['mapId']
+        self.seasonId = detail['seasonId']
+        self.gameVersion = detail['gameVersion']
+        self.gameMode = detail['gameMode']
+        self.gameType = detail['gameType']
+        self.teams = detail['teams']
+        self.participants = detail['participants']
+        self.participantIdentities = [self._ParticipantIdentities(**x) for x in detail['participantIdentities']]
+
+    def matching_dict(self) -> dict:
+        '''Return dict of participantId:(accountId,summonerName)'''
+        ret = dict()
+        for x in self.participantIdentities:
+            ret[x.participantId] = (x.player.accountId,x.player.summonerName)
+        return ret
+    
+    def matching_func(self) -> typing.Callable:
+        '''Return mapping function of participantId:(accountId,summonerName)'''
+        ret = dict()
+        for x in self.participantIdentities:
+            ret[x.participantId] = (x.player.accountId,x.player.summonerName)
+        return lambda x: ret[x][1]
+        
+    class _ParticipantIdentities:
+        def __init__(self,**kwargs) -> None:
+            '''
+            ### Attributes
+            - participantId: the true mapping of id and time line
+            - player: A player object
+            '''
+            self.participantId = kwargs['participantId']
+            self.player = self.Player(**kwargs['player'])
+        class Player:
+            def __init__(self,**kwargs) -> None:
+                '''
+                ### Attribute:
+                - "platformId",  
+                - "accountId" ,  
+                - "summonerName",  
+                - "summonerId" ,  
+                - "currentPlatformId",  
+                - "currentAccountId",  
+                - "matchHistoryUri",  
+                - "profileIcon":   
+                '''
+                for x in kwargs:
+                    self.__dict__[x] = kwargs[x]
+        
 def _tPlayerHistory():
-    id = GetAccountID("X嘻哈酷老頭兒X")
+    id = GetAccountID("alankingdom")
     history = GetPlayerHistory(id)
     HR = HistoryReader(history)
-    print(HR.gameids())
+    print(HR.games.games[9].participants.championId)
 
 def _tGetGameTimeline():
-    timeline = GetGameTimeline(1940205360)
-    TimeLineReader(timeline).display()
+    timeline = GetGameTimeline(1940347176)
+    detail = GetSingleGameDetail(1940347176)
+    func = GameDetailMatching(detail).matching_func()
+    TimeLineReader(timeline).display(func)
+
+def _tELOTransfrom():
+    print(ELOTransform(Tier,1537))
+
+if __name__=="__main__":
+    pass
