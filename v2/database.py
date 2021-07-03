@@ -4,19 +4,24 @@ import typing
 
 class DBAgent():
     def __init__(self, path:os.PathLike=None) -> None:
+        '''
+        ### Parameters:
+        - path: specify db file path, if None, then use LOL.db as default.
+        '''
         sqlite3.register_adapter(bool, lambda val: int(val))
-        def dict_factory(cursor, row):
-            d = {}
-            for idx, col in enumerate(cursor.description):
-                d[col[0]] = row[idx]
-            return d
         if path==None: path = "LOL.db"
         self.__con = sqlite3.connect("LOL.db")
-        self.__con.row_factory = dict_factory
+        self.__con.row_factory = self.dict_factory
         self.__cur = self.__con.cursor()
 
     def __del__(self):
         self.__con.close()
+
+    def dict_factory(self,cursor,row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
 
     def _CreateTableUser(self) -> None:
         self.__cur.execute("CREATE TABLE IF NOT EXISTS users( \
@@ -36,8 +41,8 @@ class DBAgent():
 
     def _CreateTableGame(self) -> None:
         self.__cur.execute("CREATE TABLE IF NOT EXISTS game(\
-                    gameId TEXT NOT NULL,\
-                    accountId TEXT NOT NULL,\
+                    gameId INT NOT NULL,\
+                    accountId INT NOT NULL,\
                     gameMode TEXT NOT NULL,\
                     gameVersion TEXT NOT NULL,\
                     gameCreation DATETIME NOT NULL,\
@@ -77,11 +82,13 @@ class DBAgent():
         self._CreateTableELO()
         self._CreateTableGame()
         
-    def _InsertUser(self) -> None:
-        pass
+    def _InsertUser(self,param: typing.Iterable) -> None:
+        self.__cur.execute("INSERT INTO users VALUES ({})".format(",".join("?"*len(param))) ,param)
+        self.__con.commit()
 
-    def _InsertELO(self) -> None:
-        pass
+    def _InsertELO(self,param: typing.Iterable) -> None:
+        self.__cur.execute("INSERT INTO elo VALUES ({})".format(",".join("?"*len(param))) ,param)
+        self.__con.commit()
 
     def _InsertGame(self,param: typing.Iterable) -> None:
         self.__cur.execute("INSERT INTO game VALUES ({})".format(",".join("?"*len(param))) ,param)
@@ -92,9 +99,25 @@ class DBAgent():
         self.__cur.executemany("INSERT INTO game VALUES ({})".format(",".join("?"*len(param[0]))) ,param)
         self.__con.commit()
 
-    def Query(self, sql: str, param: list=[]) -> list:
+    def _Query(self, sql: str, param: list=[]) -> dict:
         self.__cur.execute(sql,param)
         return self.__cur.fetchall()
+
+    def GetIdByUsers(self) -> list:
+        self.__cur.execute("SELECT DISTINCT accountId FROM users")
+        return [ _['accountId'] for _ in self.__cur.fetchall()]
+
+    def GetIdByGame(self) -> list:
+        '''### This function will depreciate at next version\n
+           ### Use GetIdByUsers() instead.
+        '''
+        print('\033[93m'+"GetIdByGame will Depreciate at next version. Use GetIdByUsers() instead."+'\033[0m')
+        self.__cur.execute("SELECT DISTINCT accountId FROM game")
+        return [ _['accountId'] for _ in self.__cur.fetchall()]
+
+    def GetRecentGameIds(self,accountId: str, size: int=20) -> list:
+        self.__cur.execute("SELECT gameId FROM game WHERE accountId=? ORDER BY gameCreation DESC",[accountId,])
+        return [ _['gameId'] for _ in self.__cur.fetchmany(size)]
 
 if __name__ == "__main__":
     pass
