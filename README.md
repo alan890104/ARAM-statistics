@@ -51,10 +51,12 @@ digraph hierarchy {
 
 ### 進階
 - [x] 玩家遊玩紀錄 
-- [ ] 個人強勢英雄計算與輸出 
+- [x] 個人強勢英雄計算與輸出 
 - [ ] 愛用道具計算與輸出
-- [ ] 當季最佳紀錄計算與輸出
+- [x] 當季最佳紀錄計算與輸出
 - [ ] 隨機冷知識(?  你知道嗎?alankingdom在藍方的勝率更高!隱分和藍紅兩方的關係?
+- [ ] pytesseract轉換圖像中文字 以利預測
+- [ ] 機器學習勝率預測模型改良
 
 ## Line前端介面
 - [ ] Button Message  
@@ -81,15 +83,15 @@ CREATE TABLE elo(
 CREATE TABLE game(
     gameId INT,
     accountId INT FOREIGN KEY,
-    gameMode TEXT NOT NULL,
-    gameType TEXT NOT NULL, //ex: "MATCHED_GAME"
+    gameMode TEXT NOT NULL, --ARAM/CLASSIC/ONEFORALL/URF/NEXUSBLITZ/KINGPORO/TUTORIAL_MODULE_1/TUTORIAL_MODULE_2
+    gameType TEXT NOT NULL, --ex: "MATCHED_GAME"
     gameVersion TEXT NOT NULL,
     gameCreation DATETIME NOT NULL,
     gameDuration INT NOT NULL
-    teamId INT NOT NULL, //100(blue) or 200(red)
+    teamId INT NOT NULL, --100(blue) or 200(red)
     championId INT NOT NULL,
     win BOOL NOT NULL,
-    items TEXT NOT NULL, //EX: " 1001 1002 1003 0 0 0 0 "
+    items TEXT NOT NULL, --EX: " 1001 1002 1003 0 0 0 0 "
     kills INT NOT NULL,
     deaths INT NOT NULL,
     assists INT NOT NULL,
@@ -111,16 +113,21 @@ CREATE TABLE game(
     champLevel INT NOT NULL,
     firstBloodKill BOOL NOT NULL,
     firstTowerKill BOOL NOT NULL,
-    role TEXT,
-    lane TEXT,
+    role TEXT, --DUO_SUPPORT/DUO/SOLO/DUO_CARRY/NONE
+    lane TEXT, --MIDDLE/JUNGLE/TOP/BOTTOM/NONE
     PRIMARY KEY(gameId,accountId)
 )
 ```
 ## 版本資訊   
-  v2020.08.07.24  注音近似  *ex: 口格摩會自動更正為寇格魔*  
-  v2020.08.08.01  圖片回傳版面更新  
-  v2020.08.08.02  更新提示字  
-  v2020.08.09.01  增加bp功能  
-  v2020.08.09.02  heroku config:add TZ="Asia/Taipei"  
-  v2020.08.10.01  APScheduler自動爬蟲  
-  v2020.08.15.01  加入隱藏積分  
+* v2   
+  - 2021.07.04.01  資料庫填充完成  
+   
+* v1  
+  - 2020.08.07.24  注音近似  *ex: 口格摩會自動更正為寇格魔*  
+  - 2020.08.08.01  圖片回傳版面更新  
+  - 2020.08.08.02  更新提示字  
+  - 2020.08.09.01  增加bp功能  
+  - 2020.08.09.02  heroku config:add TZ="Asia/Taipei"  
+  - 2020.08.10.01  APScheduler自動爬蟲  
+  - 2020.08.15.01  加入隱藏積分  
+
