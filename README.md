@@ -2,6 +2,7 @@
 
 [![hackmd-github-sync-badge](https://hackmd.io/lTFPJuA6Rn-kpDqh8slQww/badge)](https://hackmd.io/lTFPJuA6Rn-kpDqh8slQww)
 
+## 使用說明
 - **簡介**: 分析台灣玩家在當前版本的ARAM勝率，並且有ARAM推薦符文、推薦出裝、推薦技能次序、檢視玩家最近資訊等功能。
 
   -目前有新增一些關於NG、RANK等等的統計
@@ -15,14 +16,10 @@
 |玩家 *<玩家名稱>*|遊戲地圖、模式、角色、KDA、最近平均勝率|無|
 |玩家 *<玩家名稱>* 分析|更為深入的玩家數據轉換|無|
 |玩家 *<玩家名稱>* 隱分|玩家在不同模式中的隱分|無|
-|勝率最低|最低勝率的5名角色|無|
-|勝率最高|最高勝率的5名角色|無|
-|aram說話  |(遇到無法辨識的指令自動提示)|無|
-|aram閉嘴  |(關閉自動提示)|無|
 
 ## 主架構
 * <font color="green">綠色</font>未完成 <font color="red">紅色</font>待修改 <font color="orange">橘色</font>重點項目
-```graphviz=
+```graphviz
 digraph hierarchy {
 
 		nodesep=1.0 // increases the separation between nodes
@@ -34,7 +31,7 @@ digraph hierarchy {
 		遊戲內資訊->{英雄資訊 版本快訊}
 		玩家資訊->{隱分趨勢 對戰分析 對戰預測 浪費人生計算機}
         英雄資訊->{選用率[color="red"] 勝率[color="red"] 推薦裝備[color="red"]}
-        對戰分析->{個人強勢英雄[color="red"] 愛用道具[color="red"] 當季最佳紀錄[color="red"]}
+        對戰分析->{個人強勢英雄[color="red"] 愛用道具[color="red"] 當季最佳紀錄[color="red"] 找剪頭仔[color="red"]}
 		{rank=same;英雄資訊 版本快訊[color="red"] 隱分趨勢[color="red"] 對戰分析 對戰預測[color="green"]}  // Put them on the same level
 }
 ```
@@ -53,11 +50,11 @@ digraph hierarchy {
 - [X] 遊玩歷史紀錄取得  
 
 ### 進階
-- [ ] 玩家遊玩紀錄 
+- [x] 玩家遊玩紀錄 
 - [ ] 個人強勢英雄計算與輸出 
 - [ ] 愛用道具計算與輸出
 - [ ] 當季最佳紀錄計算與輸出
-- [ ] 隨機冷知識(?  你知道嗎?alankingdom的隱分昨天首度到達菁英
+- [ ] 隨機冷知識(?  你知道嗎?alankingdom在藍方的勝率更高!隱分和藍紅兩方的關係?
 
 ## Line前端介面
 - [ ] Button Message  
@@ -66,9 +63,7 @@ digraph hierarchy {
 * 使用者資料表  
 ```sql=
 CREATE TABLE users(
-    LineId TEXT PRIMARY KEY,
-    LOLId TEXT UNIQUE,// LOL account id    
-    LineName TEXT NOT NULL UNIQUE,
+    accountId TEXT UNIQUE,// LOL account id    
     LOLName TEXT NOT NULL UNIQUE
 )
 ```
@@ -76,9 +71,49 @@ CREATE TABLE users(
 ```sql=
 CREATE TABLE elo(
     accountId TEXT PRIMARY KEY,
-    type TEXT NOT NULL, //哪種模式 ex: ARAM
+    gameMode TEXT NOT NULL, //哪種模式 ex: ARAM
     score INT NOT NULL, //隱分分數
     sqltime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL //更新的時間   
+)
+```
+* 遊玩歷史紀錄資料表  
+```sql=
+CREATE TABLE game(
+    gameId INT,
+    accountId INT FOREIGN KEY,
+    gameMode TEXT NOT NULL,
+    gameType TEXT NOT NULL, //ex: "MATCHED_GAME"
+    gameVersion TEXT NOT NULL,
+    gameCreation DATETIME NOT NULL,
+    gameDuration INT NOT NULL
+    teamId INT NOT NULL, //100(blue) or 200(red)
+    championId INT NOT NULL,
+    win BOOL NOT NULL,
+    items TEXT NOT NULL, //EX: " 1001 1002 1003 0 0 0 0 "
+    kills INT NOT NULL,
+    deaths INT NOT NULL,
+    assists INT NOT NULL,
+    largestKillingSpree INT NOT NULL,
+    largestMultiKill INT NOT NULL,
+    doubleKills INT NOT NULL,
+    tripleKills INT NOT NULL,
+    quadraKills INT NOT NULL,
+    pentaKills INT NOT NULL,
+    unrealKills INT NOT NULL,
+    totalDamageDealt INT NOT NULL,
+    totalHeal INT NOT NULL,
+    totalDamageTaken INT NOT NULL,
+    timeCCingOthers INT NOT NULL,
+    visionScore INT NOT NULL,
+    goldEarned INT NOT NULL,
+    totalMinionsKilled INT NOT NULL,
+    buildingKills INT NOT NULL,
+    champLevel INT NOT NULL,
+    firstBloodKill BOOL NOT NULL,
+    firstTowerKill BOOL NOT NULL,
+    role TEXT,
+    lane TEXT,
+    PRIMARY KEY(gameId,accountId)
 )
 ```
 ## 版本資訊   
