@@ -200,7 +200,7 @@ def JsonRead(filename: os.PathLike, mode='r') -> dict:
 class HistoryReader():
     def __init__(self,history: dict) -> None:
         '''### Parse the result from GetPlayerHistory() function '''
-        self.platformId = history['platformId']
+        self.platformId = history['platformId'] if 'platformId' in history else 'TW'
         self.accountId = history['accountId']
         self.games = self._Games(**history['games'])
         self.shownQueues = history['shownQueues']
@@ -256,6 +256,7 @@ class HistoryReader():
             game_info.append(g.gameId)
             game_info.append(self.accountId)
             game_info.append(g.gameMode)
+            game_info.append(g.gameType)
             game_info.append(g.gameVersion)
             game_info.append(g.gameCreation)
             game_info.append(g.gameDuration)

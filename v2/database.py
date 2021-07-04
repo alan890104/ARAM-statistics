@@ -48,6 +48,7 @@ class DBAgent():
                     gameId INT NOT NULL,\
                     accountId INT NOT NULL,\
                     gameMode TEXT NOT NULL,\
+                    gameType TEXT NOT NULL,\
                     gameVersion TEXT NOT NULL,\
                     gameCreation DATETIME NOT NULL,\
                     gameDuration INT NOT NULL,\
@@ -146,7 +147,10 @@ class DBAgent():
         - accountId : your id
         - category:
             - True  : Return winrate corresponding to gameMode(need to more than threshold)
-            - False : Return overall winrate
+            - False : Return overall winrate (DEFAULT)
+        - theshold : unsigned int (look up category: True) DEFULT 10
+        - gameType : str  DEFAULT "MATCHED_GAME"
+        - gameVersion : str DEFAULT all versions in database
         - gameCreation : INT specify the game create after param in milliseconds
         - gameDuration : INT specify the gameduration shorter than the param in senconds
         - teamId: INT 100(blue) 200(red)
@@ -154,22 +158,36 @@ class DBAgent():
         - role : str
         - lane : str
         '''
+        
         condition = " accountId=? "
+        input_param = [accountId]
+        if "gameType" in kwargs:
+            condition += " AND gameType=? "
+            input_param.append(kwargs["gameType"])
+        else: # Set MATCHED_GAME as default (電腦場不計)
+            condition += " AND gameType=MATCHED_GAME " 
+        if "gameVersion" in kwargs:
+            condition += " AND gameVersion=? "
+            input_param.append(kwargs["gameVersion"])
         if "gameCreation" in kwargs:
             condition += " AND gameCreation>? "
+            input_param.append(kwargs["gameCreation"])
         if "gameDuration" in kwargs:
             condition += " AND gameDuration<? "
+            input_param.append(kwargs["gameDuration"])
         if "teamId" in kwargs:
             condition += " AND teamId=? "
+            input_param.append(kwargs["teamId"])
         if "championId" in kwargs:
             condition += " AND championId=? "
+            input_param.append(kwargs["championId"])
         if "role" in kwargs:
             condition += " AND role=? "
+            input_param.append(kwargs["role"])
         if "lane" in kwargs:
             condition += " AND lane=? "
+            input_param.append(kwargs["lane"])
 
-        input_param = [accountId]
-        input_param.extend(list(kwargs.values()))
 
         if not category:
             self.__cur.execute("SELECT ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\
