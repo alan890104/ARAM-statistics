@@ -112,6 +112,15 @@ class DBAgent():
         self.__cur.execute(sql,param)
         return self.__cur.fetchall()
     
+    def CheckTableExist(self, TableName: str) -> bool:
+        '''
+        ### Return
+        - True:  table exists
+        - False:  table not exists
+        '''
+        self.__cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?",[TableName,])
+        return self.__cur.fetchone()!=None
+
     def GetUserDict(self, reverse=False) -> dict:
         '''
         ### Parameter
@@ -153,12 +162,12 @@ class DBAgent():
         - gameType : str  DEFAULT "MATCHED_GAME"
         - gameVersion : str DEFAULT all versions in database ex: 
         - gameCreation : INT specify the game create after param in milliseconds
-        - gameDuration : INT specify the gameduration shorter than the param in senconds
+        - gameDuration : INT specify the gameduration shorter than the param in seconds
         - teamId: INT 100(blue) 200(red)
         - championId : INT 
         - role : str DUO_SUPPORT/DUO/SOLO/DUO_CARRY/NONE
         - lane : str MIDDLE/JUNGLE/TOP/BOTTOM/NONE
-        - sort : str 'gameMode' or 'ratio'
+        - sort : str 'gameMode' or 'ratio' (work when category=True)
         '''
         
         condition = " accountId=? "
@@ -172,10 +181,10 @@ class DBAgent():
             condition += " AND gameVersion=? "
             input_param.append(kwargs["gameVersion"])
         if "gameCreation" in kwargs:
-            condition += " AND gameCreation>? "
+            condition += " AND gameCreation>=? "
             input_param.append(kwargs["gameCreation"])
         if "gameDuration" in kwargs:
-            condition += " AND gameDuration<? "
+            condition += " AND gameDuration<=? "
             input_param.append(kwargs["gameDuration"])
         if "teamId" in kwargs:
             condition += " AND teamId=? "
@@ -189,7 +198,7 @@ class DBAgent():
         if "lane" in kwargs:
             condition += " AND lane=? "
             input_param.append(kwargs["lane"])
-        if "sort" in kwargs and kwargs['sort']=='ratio':
+        if category and "sort" in kwargs and kwargs['sort']=='ratio':
             order_way = " ORDER BY ratio DESC "
         else:
             order_way = " ORDER BY gameMode "
@@ -207,6 +216,32 @@ class DBAgent():
         '''### Total playing time in second'''
         self.__cur.execute("SELECT SUM(gameDuration) as time FROM game WHERE accountId=?",[accountId,])
         return timedelta(seconds=self.__cur.fetchone()['time'])
+
+def _tWinRate():
+    Agent = DBAgent()
+    UserDict = Agent.GetUserDict()
+    print("##########ALL############")
+    for id in UserDict:
+        winrate = Agent.GetWinRateByCond(id)
+        print(UserDict[id],winrate)
+    print("\n##########CATEGORY############")
+    for id in UserDict:
+        winrate = Agent.GetWinRateByCond(id,category=True)
+        print(UserDict[id],winrate)
+    print("\n##########BLUE TEAM############")
+    for id in UserDict:
+        winrate = Agent.GetWinRateByCond(id,teamId=100)
+        print(UserDict[id],winrate)
+    print("\n##########15min############")
+    for id in UserDict:
+        winrate = Agent.GetWinRateByCond(id,gameDuration=60*15)
+        print(UserDict[id],winrate)
+    print("\n##########BOTTOM LANE############")
+    for id in UserDict:
+        winrate = Agent.GetWinRateByCond(id,lane="BOTTOM",gameMode='ARAM')
+        print(UserDict[id],winrate)
+    print()
+
 
 if __name__ == "__main__":
     pass
