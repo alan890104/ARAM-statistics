@@ -24,11 +24,17 @@ def _GameCrawler():
         AGD.JsonWrite({"errors":ERRORS},'log.json')
 
 def _UserCrawler():
+    '''
+    ### Initialize the database with users data
+    '''
+    namelist=['alankingdom','WhiteClover','7184奇異博士','X嘻哈酷老頭兒X']
     Agent = Database.DBAgent()
     Agent._CreateTableUser()
-    for name in ['alankingdom','WhiteClover','7184奇異博士','X嘻哈酷老頭兒X']:
+    for name in namelist:
         id = AGD.GetAccountID(name)
         Agent._InsertUser([id,name])
+        print(name)
+        time.sleep(0.1)
 
 def UpdateGameData(Agent: Database.DBAgent):
     '''
@@ -39,18 +45,22 @@ def UpdateGameData(Agent: Database.DBAgent):
     3. Find the difference by new - old
     4. Write into game table
     '''
-    IdList = Agent.GetIdByGame()
+    IdList = Agent.GetIdByUsers()
+    KeepQuery = True
     for id in IdList:
         OldData = Agent.GetRecentGameIds(id)
-        history = AGD.GetPlayerHistory(id)
-        HR = AGD.HistoryReader(history)
-        history_list = HR.format_list()
-        NewData      = HR.gameids()
-        diff = list(set(NewData)-set(OldData))
-        for gameid in diff:
-            idx = NewData.index(gameid)
-            Agent._InsertGame(history_list[idx])
+        while KeepQuery:
+            history = AGD.GetPlayerHistory(id)
+            HR = AGD.HistoryReader(history)
+            history_list = HR.format_list()
+            NewData      = HR.gameids()
+            diff = list(set(NewData)-set(OldData))
+            # Don't need to get history since all match
+            if len(diff)==0:  KeepQuery = False 
+            for gameid in diff:
+                idx = NewData.index(gameid)
+                Agent._InsertGame(history_list[idx])
 
 if __name__=="__main__":
-    _UserCrawler()
+    pass
 

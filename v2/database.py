@@ -117,7 +117,7 @@ class DBAgent():
         ### Parameter
         - reverse
             - True  : a mapping from name to accountId
-            - False : a mapping from accountId to name
+            - False : a mapping from accountId to name (DEFUALT)
         '''
         self.__cur.execute("SELECT * FROM users")
         if reverse:
@@ -126,14 +126,15 @@ class DBAgent():
             return { _['accountId']:_['LOLName'] for _ in self.__cur.fetchall()}
 
     def GetIdByUsers(self) -> list:
+        ''' Return a list with accountIds'''
         self.__cur.execute("SELECT DISTINCT accountId FROM users")
         return [ _['accountId'] for _ in self.__cur.fetchall()]
 
     def GetIdByGame(self) -> list:
-        '''### This function will depreciate at next version\n
-           ### Use GetIdByUsers() instead.
+        '''### This function will depreciate at product version\n
+           ### Use GetIdByUsers() or GetUserDict() instead.
         '''
-        print('\033[93m'+"GetIdByGame will Depreciate at next version. Use GetIdByUsers() instead."+'\033[0m')
+        print('\033[93m'+"GetIdByGame will Depreciate at product version. Use GetIdByUsers() or GetUserDict() instead."+'\033[0m')
         self.__cur.execute("SELECT DISTINCT accountId FROM game")
         return [ _['accountId'] for _ in self.__cur.fetchall()]
 
@@ -150,13 +151,14 @@ class DBAgent():
             - False : Return overall winrate (DEFAULT)
         - theshold : unsigned int (look up category: True) DEFULT 10
         - gameType : str  DEFAULT "MATCHED_GAME"
-        - gameVersion : str DEFAULT all versions in database
+        - gameVersion : str DEFAULT all versions in database ex: 
         - gameCreation : INT specify the game create after param in milliseconds
         - gameDuration : INT specify the gameduration shorter than the param in senconds
         - teamId: INT 100(blue) 200(red)
-        - championId : INT
-        - role : str
-        - lane : str
+        - championId : INT 
+        - role : str DUO_SUPPORT/DUO/SOLO/DUO_CARRY/NONE
+        - lane : str MIDDLE/JUNGLE/TOP/BOTTOM/NONE
+        - sort : str 'gameMode' or 'ratio'
         '''
         
         condition = " accountId=? "
@@ -165,7 +167,7 @@ class DBAgent():
             condition += " AND gameType=? "
             input_param.append(kwargs["gameType"])
         else: # Set MATCHED_GAME as default (電腦場不計)
-            condition += " AND gameType=MATCHED_GAME " 
+            condition += " AND gameType='MATCHED_GAME' " 
         if "gameVersion" in kwargs:
             condition += " AND gameVersion=? "
             input_param.append(kwargs["gameVersion"])
@@ -187,7 +189,10 @@ class DBAgent():
         if "lane" in kwargs:
             condition += " AND lane=? "
             input_param.append(kwargs["lane"])
-
+        if "sort" in kwargs and kwargs['sort']=='ratio':
+            order_way = " ORDER BY ratio DESC "
+        else:
+            order_way = " ORDER BY gameMode "
 
         if not category:
             self.__cur.execute("SELECT ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\
@@ -195,7 +200,7 @@ class DBAgent():
             return {"all":self.__cur.fetchone()['ratio']}
         else:
             self.__cur.execute("SELECT gameMode,ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\
-                WHERE {} GROUP BY gameMode HAVING COUNT(win)>{} ORDER BY ratio DESC".format(condition,threshold),input_param)
+                WHERE {} GROUP BY gameMode HAVING COUNT(win)>{} {}".format(condition,threshold,order_way),input_param)
             return { _['gameMode']:_['ratio'] for _ in self.__cur.fetchall() }
 
     def GetTotalPlayingTime(self,accountId: str) -> datetime.timedelta:
