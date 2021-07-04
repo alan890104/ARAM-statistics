@@ -1,7 +1,11 @@
+from collections import UserDict
+import sqlite3
+from typing import Union
 import Database
 import AccessGameData as AGD
 import datetime
 import time
+
 def _GameCrawler():
     '''
     ### Initialize the database with game data
@@ -47,33 +51,38 @@ def _Initializer():
     _UserCrawler()
     _GameCrawler()
 
-def UpdateGameData(Agent: Database.DBAgent):
+def UpdateGameData(Agent: Database.DBAgent) -> None:
     '''
     ### To update the game table EVERY INTERVAL
     #### Step:
     1. Get accountId from database
     2. Format into list
-    3. Find the difference by new - old
+    3. Check if gameid in list
     4. Write into game table
     '''
-    IdList = Agent.GetIdByUsers()
-    KeepQuery = True
-    for id in IdList:
-        OldData = Agent.GetRecentGameIds(id)
-        while KeepQuery:
-            history = AGD.GetPlayerHistory(id)
+    UserDict = Agent.GetUserDict()
+    for id in UserDict:
+        begin=0
+        while True:
+            history = AGD.GetPlayerHistory(id,begin,begin+20)
+            begin+=20
             HR = AGD.HistoryReader(history)
             history_list = HR.format_list()
             NewData      = HR.gameids()
-            diff = list(set(NewData)-set(OldData))
-            # Don't need to get history since all match
-            if len(diff)==0:  KeepQuery = False 
-            for gameid in diff:
-                idx = NewData.index(gameid)
-                Agent._InsertGame(history_list[idx])
+            count = 0
+            for gameid in NewData:
+                if not Agent.CheckGameIdExist(gameid):
+                    print(gameid," insertion!")
+                    idx = NewData.index(gameid)
+                    Agent._InsertGame(history_list[idx])
+                    count+=1
+                else:
+                    print("Gameid:",gameid," is already exists!")
+            if count<20: break
+        print(UserDict[id],"Finish")
 
 
     
 if __name__=="__main__":
-    pass
-
+    Agent = Database.DBAgent()
+    UpdateGameData(Agent)

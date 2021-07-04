@@ -4,6 +4,7 @@ https://github.com/nxhdev2002/checkLOLMatchHistory/blob/9a005e76791acf13ce71017f
 '''
 import os
 import json
+from sys import int_info
 import typing
 import requests
 
@@ -189,8 +190,9 @@ def ELOTransform(Tier: dict,value: int) -> str:
     return Tier[key[left]] if left==0 or value>=key[left] else Tier[key[left-1]]
 
 def JsonWrite(data: dict, filename: os.PathLike, mode='w') -> None:
+    print("\033[93mWarning: Python Json dump will convert int keys into string.\033[0m")
     with open(filename,mode,encoding='utf-8') as F:
-        json.dump(data,F,ensure_ascii=False,indent=4)
+        json.dump(data,F,ensure_ascii=False,indent=4, sort_keys=True,)
 
 def JsonRead(filename: os.PathLike, mode='r') -> dict:
     with open(filename,mode,encoding='utf-8') as F:
