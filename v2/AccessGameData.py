@@ -219,49 +219,6 @@ class HistoryReader():
         self.accountId = history['accountId']
         self.games = self._Games(**history['games'])
         self.shownQueues = history['shownQueues']
-    def form(self) -> dict:
-        '''format important attribute'''
-        obj = dict()
-        obj['accountId'] = self.accountId
-        obj['playerName'] = self.playerName()
-        game_list = list()
-        for g in self.games.games:
-            game_info = dict()
-            game_info['gameId'] = g.gameId
-            game_info['gameMode'] = g.gameMode
-            game_info['gameVersion'] = g.gameVersion
-            game_info['gameCreation'] = g.gameCreation
-            game_info['gameDuration'] = g.gameDuration
-            game_info['teamId'] = g.participants.teamId
-            game_info['championId'] = g.participants.championId
-            stats_dict = dict()
-            stats = g.participants.stats
-            stats_dict['win'] = stats.win
-            stats_dict['item'] = [stats.__dict__['item{}'.format(x)] for x in range(7)]
-            stats_dict['kda'] = (stats.kills,stats.deaths,stats.assists)
-            stats_dict['largestKillingSpree'] = stats.largestKillingSpree
-            stats_dict['largestMultiKill'] = stats.largestMultiKill
-            stats_dict['doubleKills'] = stats.doubleKills
-            stats_dict['tripleKills'] = stats.tripleKills
-            stats_dict['quadraKills'] = stats.quadraKills
-            stats_dict['pentaKills'] = stats.pentaKills
-            stats_dict['unrealKills'] = stats.unrealKills
-            stats_dict['totalDamageDealt'] = stats.totalDamageDealt
-            stats_dict['largestCriticalStrike'] = stats.largestCriticalStrike
-            stats_dict['totalHeal'] = stats.totalHeal
-            stats_dict['visionScore'] = stats.visionScore
-            stats_dict['timeCCingOthers'] = stats.timeCCingOthers
-            stats_dict['totalDamageTaken'] = stats.totalDamageTaken
-            stats_dict['goldEarned'] = stats.goldEarned
-            stats_dict['totalMinionsKilled'] = stats.neutralMinionsKilled+stats.totalMinionsKilled
-            stats_dict['buildingKills'] = stats.turretKills+stats.inhibitorKills
-            stats_dict['champLevel'] = stats.champLevel
-            stats_dict['firstBloodKill'] = stats.firstBloodKill
-            stats_dict['firstTowerKill'] = stats.firstTowerKill
-            game_info['stats'] = stats_dict
-            game_list.append(game_info)
-        obj['gamelist'] = game_list
-        return obj   
     def format_list(self) -> list:
         '''### DESIGN FOR -> INSERT INTO GAME TABLE
         - format important attribute '''
@@ -290,9 +247,11 @@ class HistoryReader():
             game_info.append(stats.quadraKills)
             game_info.append(stats.pentaKills)
             game_info.append(stats.unrealKills)
-            game_info.append(stats.totalDamageDealt)
+            game_info.append(stats.totalDamageDealtToChampions)
             game_info.append(stats.totalHeal)
             game_info.append(stats.totalDamageTaken)
+            game_info.append(stats.damageSelfMitigated)
+            game_info.append(stats.damageDealtToObjectives)
             game_info.append(stats.timeCCingOthers)
             game_info.append(stats.visionScore)            
             game_info.append(stats.goldEarned)
@@ -301,6 +260,7 @@ class HistoryReader():
             game_info.append(stats.champLevel)
             game_info.append(stats.firstBloodKill)
             game_info.append(stats.firstTowerKill)
+            game_info.append(stats.firstInhibitorKill)
             game_info.append(g.participants.timeline.role)
             game_info.append(g.participants.timeline.lane)
             game_list.append(game_info)

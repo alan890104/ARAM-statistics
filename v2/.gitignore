@@ -4,4 +4,4 @@ test.py
 example
 __pycache__
 *.exe
-*.db
+static/*.db

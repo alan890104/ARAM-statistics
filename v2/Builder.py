@@ -3,13 +3,15 @@ import sqlite3
 from typing import Union
 import Database
 import AccessGameData as AGD
+import Database as DB
 import datetime
 import time
 
-def _GameCrawler():
+def _GameCrawler(amount: int=20):
     '''
     ### Initialize the database with game data
     '''
+    assert amount>0 and amount<=20, "\033[91m Amount>0 && Amount<=20 \033[0m"
     Agent = Database.DBAgent()
     if Agent.CheckTableExist("game"):
         raise Exception("\033[91m Table 'game' already exist, please drop it first. \033[0m")
@@ -84,5 +86,4 @@ def UpdateGameData(Agent: Database.DBAgent) -> None:
 
     
 if __name__=="__main__":
-    Agent = Database.DBAgent()
-    UpdateGameData(Agent)
+    pass

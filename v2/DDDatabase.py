@@ -70,6 +70,8 @@ class DBAgent():
                     totalDamageDealt INT NOT NULL,\
                     totalHeal INT NOT NULL,\
                     totalDamageTaken INT NOT NULL,\
+                    damageSelfMitigated INT NOT NULL,\
+                    damageDealtToObjectives INT NOT NULL,\
                     timeCCingOthers INT NOT NULL,\
                     visionScore INT NOT NULL,\
                     goldEarned INT NOT NULL,\
@@ -78,6 +80,7 @@ class DBAgent():
                     champLevel INT NOT NULL,\
                     firstBloodKill BOOL NOT NULL,\
                     firstTowerKill BOOL NOT NULL,\
+                    firstInhibitorKill BOOL NOT NULL,\
                     role TEXT,\
                     lane TEXT,\
                     PRIMARY KEY (gameId,accountId) )")
