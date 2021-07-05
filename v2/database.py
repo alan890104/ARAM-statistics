@@ -1,3 +1,5 @@
+from sys import version
+from AccessGameData import GetVersion, JsonRead
 import os
 import typing
 import sqlite3
@@ -158,7 +160,7 @@ class DBAgent():
     def GetLatestGameId(self) -> list:
         self.__cur.execute("SELECT gameId, gameCreation FROM game ORDER BY gameCreation DESC")
         result = self.__cur.fetchone()
-        return {result["gameId"]: datetime.utcfromtimestamp(result['gameCreation']/1000).strftime("%Y/%m/%d %H:%M:%S") }
+        return {result["gameId"]: (datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S") }
 
     def GetRecentGameIds(self,accountId: str, size: int=20) -> list:
         self.__cur.execute("SELECT gameId FROM game WHERE accountId=? ORDER BY gameCreation DESC",[accountId,])
@@ -196,8 +198,10 @@ class DBAgent():
             condition += " AND gameMode=?"
             input_param.append(kwargs["gameMode"])
         if "gameVersion" in kwargs:
-            condition += " AND gameVersion=? "
-            input_param.append(kwargs["gameVersion"])
+            version = kwargs["gameVersion"].rsplit(sep='.',maxsplit=1)[0]
+            version_len = len(version)
+            condition += " AND substr(gameVersion,1,{})=? ".format(version_len-1)
+            input_param.append(version[:-1])
         if "gameCreation" in kwargs:
             condition += " AND gameCreation>=? "
             input_param.append(kwargs["gameCreation"])
@@ -338,12 +342,100 @@ class DBAgent():
         WHERE {} GROUP BY lane HAVING COUNT(win)>{}  AND ratio>=0.5 ORDER BY ratio DESC".format(condition,threshold),param_list)
         return {_['lane']:_['ratio'] for _ in self.__cur.fetchmany(size)}
 
-    def GetBestKDA(self,accountId: str) -> dict:
+    def GetBestKDA(self,accountId: str,**kwargs) -> dict:
+        '''
+        ### Parameters 
+        - gameMode: str or list. DEFAULT: (ARAM/CLASSIC/ONEFORALL/URF/NEXUSBLITZ/KINGPORO)
+        - gameCreation: UTCtimestamp in milisecond. Only search the game after the specified value. 
+        - gameDuration: UTCtimestamp in second.Only search the game longer than specified value.
+        - gameVersion: str
+        '''
+        
+        condition = " accountId=?  AND gameType='MATCHED_GAME' "
+        input_param=[accountId]
+
+        if "gameMode" in kwargs:
+            if isinstance(kwargs['gameMode'],list) or isinstance(kwargs['gameMode'],tuple):
+                condition += " AND gameMode in ({}) ".format(",".join('?'*len(kwargs['gameMode'])))
+                input_param.extend(kwargs['gameMode'])
+            elif isinstance(kwargs['gameMode'],str):
+                condition += " AND gameMode=? "
+                input_param.append(kwargs['gameMode'])
+
+        if "gameCreation" in kwargs:
+            condition += " AND gameCreation>=? "
+            input_param.append(kwargs['gameCreation'])
+        
+        if "gameDuration" in kwargs:
+            condition += " AND gameDuration>=? "
+            input_param.append(kwargs["gameDuration"])
+        
+        if "gameVersion" in kwargs:
+            version = kwargs['gameVersion'].rsplit(sep='.',maxsplit=1)[0]
+            version_len = len(version)
+            condition += " AND substr(gameVersion,1,{})=? ".format(version_len-1)
+            input_param.append(version[:-1])
+
         self.__cur.execute("SELECT gameId,gameCreation,gameDuration ,gameMode,championId ,\
         ROUND(AVG( CAST( (kills+assists) AS FLOAT) /  (CASE WHEN deaths==0 THEN 1 ELSE deaths END) ),2) as kda\
-        FROM game WHERE accountId=? AND gameType='MATCHED_GAME' AND gameMode in ('CLASSIC','URF','ARAM','ONEFORALL') \
-        GROUP BY championId,gameMode ORDER BY kda DESC",[accountId])
-        return self.__cur.fetchall()[0]
+        FROM game WHERE {} GROUP BY championId,gameMode ORDER BY kda DESC".format(condition),input_param)
+        result = self.__cur.fetchall()
+        if len(result)>0:
+            result[0]["gameCreation"] = (datetime.utcfromtimestamp(result[0]['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S")
+            result[0]["gameDuration"] = str(timedelta(seconds=result[0]["gameDuration"]))
+            return result[0]
+        else:
+            return dict()
+
+    def GetFavoriteItem(self,accountId: str,version: str,size: int=3,**kwargs) -> dict:
+        '''
+        Get your favorite item in game
+        ### Parameter:
+        - version : specify the version of game (REQUIRED)
+        - size: the amount of return
+        - gameMode ARAM/CLASSIC/ONEFORALL/URF/NEXUSBLITZ/KINGPORO
+        - gameCreation: UTCtimestamp in milisecond. Only search the game after the specified value. 
+        - gameDuration: UTCtimestamp in second.Only search the game longer than specified value. DEFAULT:900
+        - forbidden: list. Don't count these items. DEFAULT:[0,2052,3340,3020,3009,2422,3111,3117,3158,3047,3006,3364,2055]
+        '''
+        version = version.rsplit(sep='.',maxsplit=1)[0]
+        version_len = len(version)
+        input_param=[accountId,version[:-1]]
+        condition = " accountId=? AND substr(gameVersion,1,{})=? ".format(version_len-1)
+
+        if "gameMode" in kwargs:
+            condition += " AND gameMode=? "
+            input_param.append(kwargs['gameMode'])
+
+        if "gameCreation" in kwargs:
+            condition += " AND gameCreation>=? "
+            input_param.append(kwargs['gameCreation'])
+        
+        if "gameDuration" in kwargs:
+            condition += " AND gameDuration>=? "
+            input_param.append(kwargs["gameDuration"])
+        else:
+            condition += " AND gameDuration>=900 "
+
+        if "forbidden" in kwargs:
+            forbidden = kwargs["forbidden"]
+        else:
+            forbidden = [0,2052,3340,3020,3009,2422,3111,3117,3158,3047,3006,3364,2055]
+
+        self.__cur.execute("SELECT items FROM game WHERE {}".format(condition),input_param)
+        result = self.__cur.fetchall()
+        item_table = typing.DefaultDict(int)
+        for r in result:
+            for item in r['items'].split():
+                if int(item) not in forbidden: item_table[int(item)]+=1
+        favorite = sorted(item_table.items(), key=lambda k:k[1], reverse=True)
+        if len(favorite)>=size:
+            return {favorite[_][0]:favorite[_][1] for _ in range(size)}
+        else:
+            ret = dict()
+            for _ in favorite:  ret[ favorite[_][0] ] = favorite[_][1]
+            return ret
+
 
 def _tWinRate():
     Agent = DBAgent()
@@ -367,6 +459,11 @@ def _tWinRate():
     print("\n##########BOTTOM LANE############")
     for id in UserDict:
         winrate = Agent.GetWinRateByCond(id,lane="BOTTOM",gameMode='ARAM')
+        print(UserDict[id],winrate)
+    print("\n##########version############")
+    version = GetVersion()
+    for id in UserDict:
+        winrate = Agent.GetWinRateByCond(id,category=True,gameVersion=version)
         print(UserDict[id],winrate)
     print()
 
@@ -422,9 +519,41 @@ def _tSpecializationLane():
 def _tKDA():
     Agent = DBAgent()
     UserDict = Agent.GetUserDict()
-    print("###########KDA#############")
+    version = GetVersion()
+    champ = JsonRead("static\champion.json")
+    print("###########經典模式/ARAM KDA#############")
     for id in UserDict:
-        print(UserDict[id],Agent.GetBestKDA(id))
+        kda = Agent.GetBestKDA(id,gameVersion=version,gameMode=["CLASSIC","ARAM"])
+        if len(kda)!=0:
+            print(UserDict[id])
+            print("\t對局ID: {}".format(kda["gameId"]))
+            print("\t日期: {}".format(kda["gameCreation"]))
+            print("\t遊戲時間: {}".format(kda["gameDuration"]))
+            print("\t模式: {}".format(kda["gameMode"]))
+            print("\t英雄: {}".format(champ[str(kda["championId"])][1]))
+            print("\tKDA: {}".format(kda["kda"]))
+            print("\t網址: https://lol.moa.tw/match/show/{}/{}".format(kda["gameId"],id))
+
+def _tFavoriteItem():
+    from AccessGameData import GetVersion
+    Agent = DBAgent()
+    UserDict = Agent.GetUserDict()
+    version = GetVersion()
+    item = JsonRead("static\item.json")
+    print("###########當前版本 經典模式 愛用道具#############")
+    for id in UserDict:
+        favorite = Agent.GetFavoriteItem(id,version,gameMode="CLASSIC")
+        if len(favorite)>0: print(UserDict[id])
+        # print(favorite)
+        for f in favorite:
+            print("\t{}:{}次".format(item[str(f)],favorite[f]) )
+    print("###########當前版本 ARAM 愛用道具#############")
+    for id in UserDict:
+        favorite = Agent.GetFavoriteItem(id,version,gameMode="ARAM")
+        if len(favorite)>0: print(UserDict[id])
+        # print(favorite)
+        for f in favorite:
+            print("\t{}:{}次".format(item[str(f)],favorite[f]) )
 
 if __name__ == "__main__":
     pass
