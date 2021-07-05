@@ -4,7 +4,7 @@ https://github.com/nxhdev2002/checkLOLMatchHistory/blob/9a005e76791acf13ce71017f
 '''
 import os
 import json
-from sys import int_info
+from sys import int_info, version
 import typing
 import requests
 
@@ -79,6 +79,10 @@ def GetSpellName(version: str) -> dict:
         ret[int(obj['key'])] = [obj['id'],obj['name']]
     return ret
 
+def GetChampDetail(version: str, ChampName: str) -> dict:
+    res = requests.get(DPREFIX+"cdn/{}/data/zh_TW/champion/{}.json".format(version,ChampName))
+    return res.json()
+
 def _DownloadProfileIcon(version: str, id: int) -> None:
     res = requests.get(DPREFIX+"cdn/{}/img/profileicon/{}.png".format(version,id),stream=True)
     if res.status_code==200:
@@ -104,6 +108,15 @@ def _DownloadSpell(version: str, SpellName: str) -> None:
     res = requests.get(DPREFIX+"cdn/{}/img/spell/{}.png".format(version,SpellName),stream=True)
     if res.status_code==200:
         with open("Spell/{}.png".format(SpellName),'wb') as F:
+            for chunk in res: 
+                F.write(chunk)
+
+def _DownloadChampSkin(version: str, ChampName: str) -> None:
+    detail = GetChampDetail(version,ChampName)
+    Latest_Skin_idx = detail["data"][ChampName]["skins"][-1]["num"]
+    res = requests.get(DPREFIX+"cdn/img/champion/loading/{}_{}.jpg".format(ChampName,Latest_Skin_idx),stream=True)
+    if res.status_code==200:
+        with open("ChampSkin/{}.jpg".format(ChampName),'wb') as F:
             for chunk in res: 
                 F.write(chunk)
 
