@@ -63,14 +63,14 @@ digraph hierarchy {
 
 ## Documentation
 * 使用者資料表  
-```sql=
+```sql
 CREATE TABLE users(
     accountId TEXT UNIQUE,// LOL account id    
     LOLName TEXT NOT NULL UNIQUE
 )
 ```
 * 隱藏積分資料表  
-```sql=
+```sql
 CREATE TABLE elo(
     accountId TEXT PRIMARY KEY,
     gameMode TEXT NOT NULL, //哪種模式 ex: ARAM
