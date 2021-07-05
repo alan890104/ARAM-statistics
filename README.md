@@ -79,7 +79,7 @@ CREATE TABLE elo(
 )
 ```
 * 遊玩歷史紀錄資料表  
-```sql=
+```sql
 CREATE TABLE game(
     gameId INT,
     accountId INT FOREIGN KEY,
