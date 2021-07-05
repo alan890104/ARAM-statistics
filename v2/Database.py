@@ -115,7 +115,7 @@ class DBAgent():
     def _Query(self, sql: str, param: list=[]) -> dict:
         self.__cur.execute(sql,param)
         return self.__cur.fetchall()
-    
+
     def CheckTableExist(self, TableName: str) -> bool:
         '''
         ### Return
@@ -133,6 +133,13 @@ class DBAgent():
         '''
         self.__cur.execute("SELECT * FROM game WHERE gameId=?",[gameId,])
         return self.__cur.fetchone()!=None
+
+    def GetTableColumn(self, TableName: str) -> list:
+        if self.CheckTableExist(TableName):
+            self.__cur.execute("SELECT * FROM {}".format(TableName))
+            return list(self.__cur.fetchone().keys())
+        else:
+            raise Exception("\033[91m Table '{}' do not exist. \033[0m".format(TableName))
 
     def GetUserDict(self, reverse=False) -> dict:
         '''
@@ -160,7 +167,7 @@ class DBAgent():
         self.__cur.execute("SELECT DISTINCT accountId FROM game")
         return [ _['accountId'] for _ in self.__cur.fetchall()]
 
-    def GetLatestGameId(self) -> list:
+    def GetLatestGameInfo(self) -> list:
         self.__cur.execute("SELECT gameId, gameCreation FROM game ORDER BY gameCreation DESC")
         result = self.__cur.fetchone()
         return {result["gameId"]: (datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S") }
@@ -439,6 +446,19 @@ class DBAgent():
             for _ in favorite:  ret[ favorite[_][0] ] = favorite[_][1]
             return ret
 
+    def GetMAXAttribute(self,attribute:str, **kwargs):
+        '''
+        Accept one attribute to show the best score in database
+        ### Parameter
+        - attribute: The attribute of the best RECORD you want to know
+        '''
+        self.__cur.execute("SELECT LOLName,MAX(record) as record,gameCreation FROM (\
+            SELECT LOLName,MAX({}) as record,gameCreation FROM game NATURAL JOIN users) ".format(attribute))
+        result = self.__cur.fetchone()
+        if "gameDuration"!=attribute:
+            return {attribute: result["record"],"LOLName":result["LOLName"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S")}
+        else:
+            return {attribute: str(timedelta(seconds=result["record"])),"LOLName":result["LOLName"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S")}
 
 def _tWinRate():
     Agent = DBAgent()
@@ -467,6 +487,11 @@ def _tWinRate():
     version = GetVersion()
     for id in UserDict:
         winrate = Agent.GetWinRateByCond(id,category=True,gameVersion=version)
+        print(UserDict[id],winrate)
+    print("\n##########firstBloodKill############")
+    version = GetVersion()
+    for id in UserDict:
+        winrate = Agent.GetWinRateByCond(id,category=True,firstBloodKill=True)
         print(UserDict[id],winrate)
     print()
 

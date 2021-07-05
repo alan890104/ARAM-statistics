@@ -1,10 +1,6 @@
-from collections import UserDict
-import sqlite3
-from typing import Union
 import Database
 import AccessGameData as AGD
 import Database as DB
-import datetime
 import time
 
 def _GameCrawler(amount: int=20):
@@ -19,9 +15,9 @@ def _GameCrawler(amount: int=20):
     user_dict = Agent.GetUserDict()
     ERRORS = []
     for accountId in user_dict:
-        for idx in range(0,10000,20):
+        for idx in range(0,10000,amount):
             try:
-                history = AGD.GetPlayerHistory(accountId,idx,idx+20)
+                history = AGD.GetPlayerHistory(accountId,idx,idx+amount)
                 history_list = AGD.HistoryReader(history).format_list()
                 Agent._InsertManyGame(history_list)
                 time.sleep(0.1)
