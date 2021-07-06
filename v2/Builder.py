@@ -2,12 +2,13 @@ import Database
 import AccessGameData as AGD
 import Database as DB
 import time
+import os
 
-def _GameCrawler(amount: int=20):
+def _GameCrawler(amount: int=20) -> None:
     '''
     ### Initialize the database with game data
     '''
-    assert amount>0 and amount<=20, "\033[91m Amount>0 && Amount<=20 \033[0m"
+    assert amount>0 and amount<=20 and isinstance(amount,int), "\033[91m int Amount>0 && Amount<=20 \033[0m"
     Agent = Database.DBAgent()
     if Agent.CheckTableExist("game"):
         raise Exception("\033[91m Table 'game' already exist, please drop it first. \033[0m")
@@ -30,7 +31,7 @@ def _GameCrawler(amount: int=20):
     if len(ERRORS)!=0:
         AGD.JsonWrite({"errors":ERRORS},'log.json')
 
-def _UserCrawler():
+def _UserCrawler() -> None:
     '''
     ### Initialize the database with users data
     '''
@@ -45,25 +46,31 @@ def _UserCrawler():
         print(name)
         time.sleep(0.1)
 
-def _Initializer():
+def _Initializer() -> None:
     _UserCrawler()
     _GameCrawler()
 
-def UpdateGameData(Agent: Database.DBAgent) -> None:
+def UpdateGameData(Agent: Database.DBAgent, amount: int=20, logging: bool=True) -> None:
     '''
     ### To update the game table EVERY INTERVAL
+    ### Parameter
+    - Agent  : Database.DBAgent()
+    - amount : Size to query new data (DEFAULT MAX 20)
+    - logging : Print Noisy Message (DEFAULT True)
     #### Step:
     1. Get accountId from database
     2. Format into list
     3. Check if gameid in list
     4. Write into game table
+    5. back up to tmp folder
     '''
+    assert amount>0 and amount<=20 and isinstance(int,amount), "\033[91m int Amount>0 && Amount<=20 \033[0m"
     UserDict = Agent.GetUserDict()
     for id in UserDict:
         begin=0
         while True:
-            history = AGD.GetPlayerHistory(id,begin,begin+20)
-            begin+=20
+            history = AGD.GetPlayerHistory(id,begin,begin+amount)
+            begin+=amount
             HR = AGD.HistoryReader(history)
             history_list = HR.format_list()
             NewData      = HR.gameids()
@@ -75,10 +82,10 @@ def UpdateGameData(Agent: Database.DBAgent) -> None:
                     Agent._InsertGame(history_list[idx])
                     count+=1
                 else:
-                    print("Gameid:",gameid," is already exists!")
+                    if logging: print("Gameid:",gameid," is already exists!")
             if count<20: break
         print(UserDict[id],"Finish")
-
+    Agent._Backup()
 
     
 if __name__=="__main__":

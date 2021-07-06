@@ -533,10 +533,46 @@ class GameDetailMatching():
         self.gameVersion = detail['gameVersion']
         self.gameMode = detail['gameMode']
         self.gameType = detail['gameType']
-        self.teams = detail['teams']
-        self.participants = detail['participants']
+        self.teams = [self.Teams(**x) for x in  detail['teams']]
+        self.participants = [self._Participants(**x) for x in  detail['participants']]
         self.participantIdentities = [self._ParticipantIdentities(**x) for x in detail['participantIdentities']]
 
+    def format_dict(self) -> dict:
+        '''
+        ### DESIGN FOR teamstats TABLE INPUT
+        ### Return
+        - dict
+            index 100
+            index 200
+        '''
+        game_list = {}
+        for team in self.teams:
+            teamstats = list()
+            teamstats.append(self.gameId)
+            teamstats.append(team.teamId)
+            teamstats.append(team.baronKills)
+            teamstats.append(team.dominionVictoryScore)
+            teamstats.append(team.dragonKills)
+            teamstats.append(team.firstBaron)
+            teamstats.append(team.firstDragon)
+            teamstats.append(team.firstInhibitor)
+            teamstats.append(team.firstRiftHerald)
+            teamstats.append(team.firstTower)
+            teamstats.append(team.inhibitorKills)
+            teamstats.append(team.riftHeraldKills)
+            teamstats.append(team.towerKills)
+            teamstats.append(team.vilemawKills)
+            totalDamage = 0
+            totalKills  = 0 
+            for player in self.participants:
+                if player.teamId == team.teamId:
+                    totalDamage += player.stats.totalDamageDealtToChampions
+                    totalKills  += player.stats.kills
+            teamstats.append(totalDamage)
+            teamstats.append(totalKills)
+            game_list[team.teamId] = teamstats
+        return game_list
+        
     def matching_dict(self) -> dict:
         '''Return dict of participantId:(accountId,summonerName)'''
         ret = dict()
@@ -550,7 +586,167 @@ class GameDetailMatching():
         for x in self.participantIdentities:
             ret[x.participantId] = (x.player.accountId,x.player.summonerName)
         return lambda x: ret[x][1]
-        
+
+    class Teams:
+        def __init__(self,**kwargs) -> None:
+            self.baronKills = 0
+            self.dominionVictoryScore = 0
+            self.dragonKills = 0
+            self.firstBaron = False
+            self.firstBlood = False
+            self.firstDragon =  False
+            self.firstInhibitor =  False
+            self.firstRiftHerald = False
+            self.firstTower = False
+            self.inhibitorKills = 0
+            self.riftHeraldKills = 0
+            self.teamId = kwargs["teamId"]
+            self.towerKills = 0
+            self.vilemawKills  = 0
+            for x in kwargs:
+                self.__dict__[x] = kwargs[x]
+    class _Participants:
+        def __init__(self,**kwargs) -> None:
+            self.participantId = kwargs['participantId']
+            self.teamId = kwargs['teamId']
+            self.championId = kwargs['championId']
+            self.spell1Id = kwargs['spell1Id']
+            self.spell2Id = kwargs['spell2Id']
+            self.stats = self._StatsReader(**kwargs['stats'])
+            self.timeline = self._TimelineReader(**kwargs['timeline'])
+        class _StatsReader:
+                    def __init__(self,**kwargs) -> None:
+                        '''
+                        ### Attribute
+                        - assists 12
+                        - champLevel 18
+                        - combatPlayerScore 0
+                        - damageDealtToObjectives 30159
+                        - damageDealtToTurrets 5466
+                        - damageSelfMitigated 12653
+                        - deaths 9
+                        - doubleKills 2
+                        - firstBloodAssist False
+                        - firstBloodKill False
+                        - firstInhibitorAssist False
+                        - firstInhibitorKill False
+                        - firstTowerAssist False
+                        - firstTowerKill True
+                        - goldEarned 23774
+                        - goldSpent 25925
+                        - inhibitorKills 1
+                        - item0 3135
+                        - item1 3089
+                        - item2 4629
+                        - item3 4637
+                        - item4 3165
+                        - item5 6655
+                        - item6 3364
+                        - killingSprees 2
+                        - kills 9
+                        - largestCriticalStrike 0
+                        - largestKillingSpree 5
+                        - largestMultiKill 2
+                        - longestTimeSpentLiving 902
+                        - - magicDamageDealt 396425
+                        - magicDamageDealtToChampions 68149
+                        - magicalDamageTaken 19702
+                        - neutralMinionsKilled 25
+                        - neutralMinionsKilledEnemyJungle 10
+                        - neutralMinionsKilledTeamJungle 12
+                        - objectivePlayerScore 0
+                        - participantId 2
+                        - pentaKills 0
+                        - perk0 8229
+                        - perk0Var1 6037
+                        - perk0Var2 0
+                        - perk0Var3 0
+                        - perk1 8226
+                        - perk1Var1 250
+                        - perk1Var2 2045
+                        - perk1Var3 0
+                        - perk2 8233
+                        - perk2Var1 34
+                        - perk2Var2 40
+                        - perk2Var3 0
+                        - perk3 8237
+                        - perk3Var1 1621
+                        - perk3Var2 0
+                        - perk3Var3 0
+                        - perk4 8345
+                        - perk4Var1 3
+                        - perk4Var2 0
+                        - perk4Var3 0
+                        - perk5 8347
+                        - perk5Var1 0
+                        - perk5Var2 0
+                        - perk5Var3 0
+                        - perkPrimaryStyle 8200
+                        - perkSubStyle 8300
+                        - physicalDamageDealt 17210
+                        - physicalDamageDealtToChampions 794
+                        - physicalDamageTaken 16480
+                        - playerScore0 0
+                        - playerScore1 0
+                        - playerScore2 0
+                        -  playerScore3 1
+                        - playerScore4 0
+                        - playerScore5 0
+                        - playerScore6 0
+                        - playerScore7 0
+                        - playerScore8 0
+                        - playerScore9 0
+                        - quadraKills 0
+                        - sightWardsBoughtInGame 0
+                        - statPerk0 5007
+                        - statPerk1 5002
+                        - statPerk2 5003
+                        - timeCCingOthers 33
+                        - totalDamageDealt 424905
+                        - totalDamageDealtToChampions 70091
+                        - totalDamageTaken 37004
+                        - totalHeal 5632
+                        - totalMinionsKilled 361
+                        - totalPlayerScore 0
+                        - totalScoreRank 0
+                        - totalTimeCrowdControlDealt 410
+                        - totalUnitsHealed 1
+                        - tripleKills 0
+                        - trueDamageDealt 11269
+                        - trueDamageDealtToChampions 1147
+                        - trueDamageTaken 821
+                        - turretKills 2
+                        - unrealKills 0
+                        - visionScore 33
+                        - visionWardsBoughtInGame 3
+                        - wardsKilled 3
+                        - wardsPlaced 9
+                        - win True
+                        '''
+                        self.firstBloodKill = False
+                        self.firstInhibitorKill = False
+                        self.firstTowerKill = False
+                        for x in kwargs:
+                            self.__dict__[x] = kwargs[x]
+        class _TimelineReader:
+                    '''
+                    ### Attribute:
+                    - participantId
+                    - creepsPerMinDeltas
+                    - xpPerMinDeltas
+                    - goldPerMinDeltas
+                    - csDiffPerMinDeltas
+                    - xpDiffPerMinDeltas
+                    - damageTakenPerMinDeltas
+                    - damageTakenDiffPerMinDeltas
+                    - role
+                    - lane
+                    '''
+                    def __init__(self,**kwargs) -> None:
+                        self.role = None
+                        self.lane = None
+                        for x in kwargs:
+                            self.__dict__[x] = kwargs[x] 
     class _ParticipantIdentities:
         def __init__(self,**kwargs) -> None:
             '''

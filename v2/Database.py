@@ -1,6 +1,6 @@
 from sys import version
 from AccessGameData import GetVersion, JsonRead
-import os
+import os,shutil
 import typing
 import sqlite3
 from datetime import timedelta,datetime
@@ -12,8 +12,8 @@ class DBAgent():
         - path: specify db file path, if None, then use LOL.db as default.
         '''
         sqlite3.register_adapter(bool, lambda val: int(val))
-        if path==None: path = "LOL.db"
-        self.__con = sqlite3.connect("LOL.db")
+        self.__path = "LOL.db" if path==None else path 
+        self.__con = sqlite3.connect(self.__path)
         self.__con.row_factory = self.dict_factory
         self.__cur = self.__con.cursor()
 
@@ -116,6 +116,14 @@ class DBAgent():
         self.__cur.execute(sql,param)
         return self.__cur.fetchall()
 
+    def _Backup(self) -> None:
+        '''
+        Backup Database file after updating
+        '''
+        temp_path = "tmp/{}/".format(int(datetime.now()))
+        if not os.path.exists(temp_path): os.makedirs(temp_path)
+        shutil.copy(src=self.__path ,dst=temp_path+"LOL.db")
+
     def CheckTableExist(self, TableName: str) -> bool:
         '''
         ### Return
@@ -141,6 +149,10 @@ class DBAgent():
         else:
             raise Exception("\033[91m Table '{}' do not exist. \033[0m".format(TableName))
 
+    def GetAccountIdByName(self, LOLName: str) -> int:
+        self.__cur.execute("SELECT accountId FROM users WHERE LOLName=? ",[LOLName,])
+        return self.__cur.fetchone()["accountId"]
+    
     def GetUserDict(self, reverse=False) -> dict:
         '''
         ### Parameter
@@ -166,6 +178,10 @@ class DBAgent():
         print('\033[93m'+"GetIdByGame will Depreciate at product version. Use GetIdByUsers() or GetUserDict() instead."+'\033[0m')
         self.__cur.execute("SELECT DISTINCT accountId FROM game")
         return [ _['accountId'] for _ in self.__cur.fetchall()]
+
+    def GetLatestVersion(self) -> str:
+        self.__cur.execute("SELECT substr(gameVersion,1,7) as version FROM game ORDER BY gameCreation DESC")
+        return self.__cur.fetchone()["version"]
 
     def GetLatestGameInfo(self) -> list:
         self.__cur.execute("SELECT gameId, gameCreation FROM game ORDER BY gameCreation DESC")
@@ -450,15 +466,17 @@ class DBAgent():
         '''
         Accept one attribute to show the best score in database
         ### Parameter
-        - attribute: The attribute of the best RECORD you want to know
+        - attribute: The attribute of the best RECORD you want to know. Can be sql aggregate command.
         '''
-        self.__cur.execute("SELECT LOLName,MAX(record) as record,gameCreation FROM (\
-            SELECT LOLName,MAX({}) as record,gameCreation FROM game NATURAL JOIN users) ".format(attribute))
+        attribute = attribute.strip()
+        self.__cur.execute("SELECT LOLName,MAX(records) as record, gameId, gameCreation,championId  FROM (\
+            SELECT LOLName, MAX({}) as records, gameId, gameCreation, championId FROM game NATURAL JOIN users GROUP BY LOLName ORDER BY gameCreation ASC) ".format(attribute))
         result = self.__cur.fetchone()
+        print(result)
         if "gameDuration"!=attribute:
-            return {attribute: result["record"],"LOLName":result["LOLName"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S")}
+            return {"record": result["record"],"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}
         else:
-            return {attribute: str(timedelta(seconds=result["record"])),"LOLName":result["LOLName"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S")}
+            return {"record": str(timedelta(seconds=result["record"])),"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}
 
 def _tWinRate():
     Agent = DBAgent()
