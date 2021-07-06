@@ -522,7 +522,7 @@ class TimeLineReader():
                 for x in kwargs:
                     self.__dict__[x] = kwargs[x]
 
-class GameDetailMatching():
+class GameDetailReader():
     def __init__(self,detail: dict) -> None:
         '''### Transfrom to a mapping with participant ID and name'''
         self.gameId = detail['gameId']
@@ -537,15 +537,11 @@ class GameDetailMatching():
         self.participants = [self._Participants(**x) for x in  detail['participants']]
         self.participantIdentities = [self._ParticipantIdentities(**x) for x in detail['participantIdentities']]
 
-    def format_dict(self) -> dict:
+    def format_list(self) -> list:
         '''
         ### DESIGN FOR teamstats TABLE INPUT
-        ### Return
-        - dict
-            index 100
-            index 200
         '''
-        game_list = {}
+        game_list = []
         for team in self.teams:
             teamstats = list()
             teamstats.append(self.gameId)
@@ -570,7 +566,7 @@ class GameDetailMatching():
                     totalKills  += player.stats.kills
             teamstats.append(totalDamage)
             teamstats.append(totalKills)
-            game_list[team.teamId] = teamstats
+            game_list.append(teamstats)
         return game_list
         
     def matching_dict(self) -> dict:
@@ -781,7 +777,7 @@ def _tPlayerHistory():
 def _tGetGameTimeline():
     timeline = GetGameTimeline(1940347176)
     detail = GetSingleGameDetail(1940347176)
-    func = GameDetailMatching(detail).matching_func()
+    func = GameDetailReader(detail).matching_func()
     TimeLineReader(timeline).display(func)
 
 def _tELOTransfrom():

@@ -85,11 +85,33 @@ class DBAgent():
                     lane TEXT,\
                     PRIMARY KEY (gameId,accountId) )")
         self.__con.commit()
-                    
+    
+    def _CreateTableTeamStats(self) -> None:
+        self.__cur.execute("CREATE TABLE IF NOT EXISTS teamstats(\
+                            gameId INT NOT NULL,\
+                            teamId INT NOT NULL,\
+                            baronKills BOOL NOT NULL,\
+                            dominionVictoryScore INT NOT NULL,\
+                            dragonKills INT NOT NULL,\
+                            firstBaron BOOL NOT NULL,\
+                            firstDragon  BOOL NOT NULL,\
+                            firstInhibitor BOOL NOT NULL,\
+                            firstRiftHerald BOOL NOT NULL,\
+                            firstTower BOOL NOT NULL,\
+                            inhibitorKills BOOL NOT NULL,\
+                            riftHeraldKills INT NOT NULL,\
+                            towerKills INT NOT NULL,\
+                            vilemawKills INT NOT NULL,\
+                            totalDamage INT NOT NULL,\
+                            totalKills INT NOT NULL,\
+                            PRIMARY KEY(gameId,teamId) )")
+        self.__con.commit()
+
     def _CreateAllTables(self) -> None:
         self._CreateTableUser()
         self._CreateTableELO()
         self._CreateTableGame()
+        self._CreateTableTeam()
         
     def _DestroyTableUser(self) -> None:
         self.__cur.execute("DROP TABLE IF EXISTS users")
@@ -110,6 +132,11 @@ class DBAgent():
     def _InsertManyGame(self, param: typing.Iterable) -> None:
         assert isinstance(param[0],list) or isinstance(param[0],tuple),"param should be 2d list or tuple."
         self.__cur.executemany("INSERT INTO game VALUES ({})".format(",".join("?"*len(param[0]))) ,param)
+        self.__con.commit()
+
+    def _InsertTeamStats(self,param: typing.Callable) -> None:
+        assert isinstance(param[0],list) or isinstance(param[0],tuple),"param should be 2d list or tuple."
+        self.__cur.executemany("INSERT INTO teamstats VALUES ({})".format(",".join("?"*len(param[0]))) ,param)
         self.__con.commit()
 
     def _Query(self, sql: str, param: list=[]) -> dict:
@@ -171,13 +198,13 @@ class DBAgent():
         self.__cur.execute("SELECT DISTINCT accountId FROM users")
         return [ _['accountId'] for _ in self.__cur.fetchall()]
 
-    def GetIdByGame(self) -> list:
-        '''### This function will depreciate at product version\n
-           ### Use GetIdByUsers() or GetUserDict() instead.
-        '''
-        print('\033[93m'+"GetIdByGame will Depreciate at product version. Use GetIdByUsers() or GetUserDict() instead."+'\033[0m')
-        self.__cur.execute("SELECT DISTINCT accountId FROM game")
-        return [ _['accountId'] for _ in self.__cur.fetchall()]
+    # def GetIdByGame(self) -> list:
+    #     '''### This function will depreciate at product version\n
+    #        ### Use GetIdByUsers() or GetUserDict() instead.
+    #     '''
+    #     print('\033[93m'+"GetIdByGame will Depreciate at product version. Use GetIdByUsers() or GetUserDict() instead."+'\033[0m')
+    #     self.__cur.execute("SELECT DISTINCT accountId FROM game")
+    #     return [ _['accountId'] for _ in self.__cur.fetchall()]
 
     def GetLatestVersion(self) -> str:
         self.__cur.execute("SELECT substr(gameVersion,1,7) as version FROM game ORDER BY gameCreation DESC")
@@ -189,8 +216,16 @@ class DBAgent():
         return {result["gameId"]: (datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S") }
 
     def GetRecentGameIds(self,accountId: str, size: int=20) -> list:
+        '''
+        Get Recent Game Id.
+        ### Parameter
+        - size: DEFAULT 20. if set to -1, will return all gameIds.
+        '''
         self.__cur.execute("SELECT gameId FROM game WHERE accountId=? ORDER BY gameCreation DESC",[accountId,])
-        return [ _['gameId'] for _ in self.__cur.fetchmany(size)]
+        if size!=-1:
+            return [ _['gameId'] for _ in self.__cur.fetchmany(size)]
+        else:
+            return [ _['gameId'] for _ in self.__cur.fetchall()]
 
     def GetWinRateByCond(self,accountId: str, category=False, threshold: int=10, **kwargs) -> dict:
         '''
