@@ -52,7 +52,7 @@ digraph hierarchy {
 ### 進階
 - [x] 玩家遊玩紀錄 
 - [x] 個人強勢英雄計算與輸出 
-- [ ] 愛用道具計算與輸出
+- [x] 愛用道具計算與輸出
 - [x] 當季最佳紀錄計算與輸出
 - [ ] 隨機冷知識(?  你知道嗎?alankingdom在藍方的勝率更高!隱分和藍紅兩方的關係?
 - [ ] pytesseract轉換圖像中文字 以利預測
@@ -105,6 +105,8 @@ CREATE TABLE game(
     totalDamageDealt INT NOT NULL,
     totalHeal INT NOT NULL,
     totalDamageTaken INT NOT NULL,
+    damageSelfMitigated INT NOT NULL,
+    damageDealtToObjectives INT NOT NULL,
     timeCCingOthers INT NOT NULL,
     visionScore INT NOT NULL,
     goldEarned INT NOT NULL,
@@ -113,6 +115,7 @@ CREATE TABLE game(
     champLevel INT NOT NULL,
     firstBloodKill BOOL NOT NULL,
     firstTowerKill BOOL NOT NULL,
+    firstInhibitorKill BOOl NOT NULL,
     role TEXT, --DUO_SUPPORT/DUO/SOLO/DUO_CARRY/NONE
     lane TEXT, --MIDDLE/JUNGLE/TOP/BOTTOM/NONE
     PRIMARY KEY(gameId,accountId)
