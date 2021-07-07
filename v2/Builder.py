@@ -1,8 +1,27 @@
+import asyncio
+from os import stat
+import re
+import aiohttp
 import Database
 import AccessGameData as AGD
 import Database as DB
 import time
-import os
+
+async def GetRequest(url,session):
+    try:
+        async with session.get(url) as response:
+            res = await response.json()
+        return res
+    except Exception as e:
+        print(e)
+
+async def Master(URLs):
+    '''
+    Request Json file in parallel
+    '''
+    async with aiohttp.ClientSession() as session:
+        ret = await asyncio.gather(*[GetRequest(url, session) for url in URLs])
+    return ret
 
 def _UserInitializer() -> None:
     '''
@@ -46,35 +65,35 @@ def _GameInitializer(amount: int=20) -> None:
     if len(ERRORS)!=0:
         AGD.JsonWrite({"errors":ERRORS},'log.json')
 
-def _TeamInitializer() -> None:
-    Agent = Database.DBAgent()
+def _TeamInitializer(amount: int=5) -> None:
+    '''
+    ### Initialize the database with team statistics
+    '''
+    assert amount>0 and amount<=5 and isinstance(amount,int), "\033[91m int Amount>0 && Amount<=20 \033[0m" 
+    Agent = DB.DBAgent()
     if Agent.CheckTableExist("teamstats"):
         raise Exception("\033[91m Table 'teamstats' already exist, please drop it first. \033[0m")
     Agent._CreateTableTeamStats()
-    user_dict = Agent.GetUserDict()
-    ERRORS = {}
-    TeamStats = []
-    for accountId in user_dict:
-        gameid_list = Agent.GetRecentGameIds(accountId,size=-1)
-        for gameid in gameid_list:
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy()) # Need to use in window
+    URLs = [AGD.GPREFIX+"stats/game/TW/"+str(GameId) for GameId in Agent.GetAllGameId()]
+    for i in range(0,len(URLs),amount):
+        print("This is time",i)
+        URLChunk = URLs[i:i+amount]
+        result = asyncio.run(Master(URLChunk))
+        for detail in result:
             try:
-                detail = AGD.GetSingleGameDetail(gameid)
-                data = AGD.GameDetailReader(detail).format_list()
-                TeamStats.extend(data)
-            except Exception as e:
-                ERRORS[gameid] = e
-            finally:
-                time.sleep(0.1)
-        print(user_dict[accountId],"finish")
-    Agent._InsertTeamStats(TeamStats)
-    if len(ERRORS)>0: AGD.JsonWrite(ERRORS,'log/TeamInitError.json')
-
+                stats = AGD.GameDetailReader(detail).format_list()
+                Agent._InsertTeamStats(stats)
+            except:
+                print(detail)
+        time.sleep(0.3)
+    
 def _Initializer() -> None:
     _UserInitializer()
     _GameInitializer()
     _TeamInitializer()
 
-def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=True) -> None:
+def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False) -> None:
     '''
     ### To update the game table EVERY INTERVAL
     ### Parameter
@@ -89,7 +108,7 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=True) 
     5. Load TeamStats
     6. Backup to tmp folder
     '''
-    assert amount>0 and amount<=20 and isinstance(int,amount), "\033[91m int Amount>0 && Amount<=20 \033[0m"
+    assert amount>0 and amount<=20 and isinstance(amount,int), "\033[91m int Amount>0 && Amount<=20 \033[0m"
     UserDict = Agent.GetUserDict()
     NewGameIds = []
     for id in UserDict:
@@ -112,16 +131,17 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=True) 
                     if logging: print("Gameid:",gameid," is already exists!")
             if count<20: break
         print(UserDict[id],"Finish")
-    TeamStats = [] 
-    for gameId in NewGameIds:
+
+    for gameId in list(set(NewGameIds)):
         detail = AGD.GetSingleGameDetail(gameId)
-        TeamStats.extend(AGD.GameDetailReader(detail).format_list())
-    Agent._InsertTeamStats(TeamStats)
+        TeamStats =  AGD.GameDetailReader(detail).format_list()
+        Agent._InsertTeamStats(TeamStats)
+        time.sleep(0.1)
+
     Agent._Backup()
 
     
 if __name__=="__main__":
-    Agent = Database.DBAgent()
-    Agent._Query("DROP TABLE IF EXISTS teamstats")
-    # Agent._Query("SELECT * FROM teamstats")
-    # _TeamInitializer()
+    Agent = DB.DBAgent()
+    # UpdateDatabase(Agent)
+    # Agent._Backup()

@@ -147,7 +147,7 @@ class DBAgent():
         '''
         Backup Database file after updating
         '''
-        temp_path = "tmp/{}/".format(int(datetime.now()))
+        temp_path = "tmp/{}/".format(int(datetime.now().timestamp()))
         if not os.path.exists(temp_path): os.makedirs(temp_path)
         shutil.copy(src=self.__path ,dst=temp_path+"LOL.db")
 
@@ -215,7 +215,14 @@ class DBAgent():
         result = self.__cur.fetchone()
         return {result["gameId"]: (datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S") }
 
-    def GetRecentGameIds(self,accountId: str, size: int=20) -> list:
+    def GetAllGameId(self) -> list:
+        '''
+        Return ALL GAMEID
+        '''
+        self.__cur.execute("SELECT DISTINCT gameId FROM game ORDER BY gameCreation")
+        return [_["gameId"] for _ in self.__cur.fetchall()]
+
+    def GetRecentGameByAccont(self,accountId: str, size: int=20) -> list:
         '''
         Get Recent Game Id.
         ### Parameter
