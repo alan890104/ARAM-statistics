@@ -1,21 +1,19 @@
-# ARAM勝率分析
+# LOL Statistics 
 
 [![hackmd-github-sync-badge](https://hackmd.io/lTFPJuA6Rn-kpDqh8slQww/badge)](https://hackmd.io/lTFPJuA6Rn-kpDqh8slQww)
 
 ## 使用說明
-- **簡介**: 分析台灣玩家在當前版本的ARAM勝率，並且有ARAM推薦符文、推薦出裝、推薦技能次序、檢視玩家最近資訊等功能。
+- **簡介**: 沒錯!把所有英雄聯盟的資料庫挖出來，就看看誰才是雷包!
 
-  -目前有新增一些關於NG、RANK等等的統計
 
 - **指令**(越上方者優先判定): 
 
-
-
-|指令|回傳文字|回傳圖片|
-|-----|----|----|
-|玩家 *<玩家名稱>*|遊戲地圖、模式、角色、KDA、最近平均勝率|無|
-|玩家 *<玩家名稱>* 分析|更為深入的玩家數據轉換|無|
-|玩家 *<玩家名稱>* 隱分|玩家在不同模式中的隱分|無|
+    |指令|內容|
+    |-----|----|
+    |@register **<玩家名稱>** |連結LINE帳號與召喚師名稱|
+    |@echo|呼叫使用者功能列表|
+    |玩家 *<玩家名稱>* 分析|更為深入的玩家數據轉換|
+    |玩家 *<玩家名稱>* 隱分|玩家在不同模式中的隱分|
 
 ## 主架構
 * <font color="green">綠色</font>未完成 <font color="red">紅色</font>待修改 <font color="orange">橘色</font>重點項目
@@ -69,6 +67,13 @@ CREATE TABLE users(
     LOLName TEXT NOT NULL UNIQUE
 )
 ```
+* Line連動資料表  
+```sql
+CREATE TABLE line(
+    LineId TEXT UNIQUE,// Line account id    
+    LOLName TEXT NOT NULL UNIQUE
+)
+```
 * 隱藏積分資料表  
 ```sql
 CREATE TABLE elo(
@@ -119,6 +124,28 @@ CREATE TABLE game(
     role TEXT, --DUO_SUPPORT/DUO/SOLO/DUO_CARRY/NONE
     lane TEXT, --MIDDLE/JUNGLE/TOP/BOTTOM/NONE
     PRIMARY KEY(gameId,accountId)
+)
+```
+* 遊玩團隊紀錄資料表
+```sql 
+CREATE TABLE teamstats(
+    gameId INT NOT NULL,
+    teamId INT NOT NULL,
+    baronKills BOOL NOT NULL,
+    dominionVictoryScore INT NOT NULL,
+    dragonKills INT NOT NULL,
+    firstBaron BOOL NOT NULL,
+    firstDragon  BOOL NOT NULL,
+    firstInhibitor BOOL NOT NULL,
+    firstRiftHerald BOOL NOT NULL,
+    firstTower BOOL NOT NULL,
+    inhibitorKills BOOL NOT NULL,
+    riftHeraldKills INT NOT NULL,
+    towerKills INT NOT NULL,
+    vilemawKills INT NOT NULL,
+    totalDamage INT NOT NULL,
+    totalKills INT NOT NULL,
+    PRIMARY KEY(gameId,teamId)
 )
 ```
 ## 版本資訊   
