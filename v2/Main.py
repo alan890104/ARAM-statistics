@@ -4,6 +4,7 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, ImageMessage
 )
+from linebot.models.events import PostbackEvent
 import AccessGameData as AGD
 import Database as DB
 import EventHandler as EH
@@ -44,6 +45,9 @@ def HandleTextMessage(event):
 def HandleImageMessage(event):
     pass
 
+@handler.add(PostbackEvent)
+def HandleImageMessage(event):
+    pass
 
 
 if __name__ == "__main__":

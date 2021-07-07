@@ -1,4 +1,5 @@
 from typing import Any
+import AccessGameData as AGD
 import Database as DB
 from linebot import LineBotApi
 from linebot.models import (
@@ -27,7 +28,7 @@ def CommandResp(event, line_bot_api: LineBotApi) -> Any:
     Agent = DB.DBAgent()
     if not Agent.GetLOLNameByLineId(LineId):
         if isinstance(event.source, SourceUser):
-            profile = line_bot_api.get_profile(event.source.user_id)
+            profile = line_bot_api.get_profile(LineId)
             LineName = profile.display_name
             Msg = "用戶{}尚未登錄資料庫, 請使用指令連動自己的LOL召喚師名稱。\
                    範例: @register alankingdom".format(LineName)
@@ -37,7 +38,7 @@ def CommandResp(event, line_bot_api: LineBotApi) -> Any:
         if len(Content.split(maxsplit=1))!=2:
             return TextSendMessage(text="格式錯誤。範例: @register alankingdom")
         if isinstance(event.source, SourceUser):
-            profile = line_bot_api.get_profile(event.source.user_id)
+            profile = line_bot_api.get_profile(LineId)
             LineName = profile.display_name
             LOLName = Agent.GetLOLNameByLineId(LineId)
             if not LOLName:
@@ -49,9 +50,12 @@ def CommandResp(event, line_bot_api: LineBotApi) -> Any:
             return TextSendMessage(text=Msg)
     
     if Content[:5]=="@echo":
-        return FlexSendMessage(alt_text="您目前的裝置不支援圖像模組，請改為使用文字命令。命令介紹: \
-                                         https://hackmd.io/@alankingdom/S1ZYT3i-w",
+        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽此訊息",
                                contents=WelcomeInterface())
+
+
+def PostBackResp(event, line_bot_api: LineBotApi) -> Any:
+    pass
 
 
 def WelcomeInterface() -> FlexContainer:
@@ -62,4 +66,4 @@ def WelcomeInterface() -> FlexContainer:
     3. 最佳紀錄保持者
     4. 浪費人生計算機
     '''
-    pass
+    return AGD.JsonRead("layout\WelcomeInterface.json")
