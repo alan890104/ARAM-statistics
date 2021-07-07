@@ -47,7 +47,10 @@ class DBAgent():
     def _CreateTableLine(self) -> None:
         self.__cur.execute("CREATE TABLE IF NOT EXISTS line( \
                             LineId TEXT UNIQUE PRIMARY KEY,\
-                            LOLName TEXT NOT NULL UNIQUE )")
+                            LOLName TEXT NOT NULL UNIQUE,\
+                            FOREIGN KEY (LOLName) REFERENCES users (LOLName)\
+                            ON DELETE CASCADE \
+                            ON UPDATE CASCADE )")
         self.__con.commit()
 
     def _CreateTableELO(self) -> None:
@@ -55,7 +58,9 @@ class DBAgent():
                     accoundId INT PRIMARY KEY,\
                     gameMode TEXT NOT NULL,\
                     sqltime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\
-                    FOREIGN KEY (accoundId) REFERENCES users (accoundId) )")
+                    FOREIGN KEY (accoundId) REFERENCES users (accoundId) \
+                    ON DELETE CASCADE \
+                    ON UPDATE CASCADE )")
         self.__con.commit()
 
     def _CreateTableGame(self) -> None:
@@ -97,7 +102,10 @@ class DBAgent():
                     firstInhibitorKill BOOL NOT NULL,\
                     role TEXT,\
                     lane TEXT,\
-                    PRIMARY KEY (gameId,accountId) )")
+                    PRIMARY KEY (gameId,accountId), \
+                    FOREIGN KEY (accoundId) REFERENCES users (accoundId) \
+                    ON DELETE CASCADE \
+                    ON UPDATE CASCADE)")
         self.__con.commit()
     
     def _CreateTableTeamStats(self) -> None:
@@ -126,6 +134,7 @@ class DBAgent():
         self._CreateTableELO()
         self._CreateTableGame()
         self._CreateTableTeamStats()
+        self._CreateTableLine()
         
     def _DestroyTableUser(self) -> None:
         self.__cur.execute("DROP TABLE IF EXISTS users")
@@ -194,12 +203,29 @@ class DBAgent():
         self.__cur.execute("SELECT * FROM game WHERE gameId=?",[gameId,])
         return self.__cur.fetchone()!=None
 
+    def GetMissTeamStats(self) -> list:
+        '''
+        Find the games which has been inserted to game but not in teamstats. 
+        '''
+        self.__cur.execute("SELECT gameId FROM game EXCEPT SELECT gameId FROM teamstats")
+        return [_["gameId"] for _ in  self.__cur.fetchall()]
+
     def GetLOLNameByLineId(self, LineId: str) -> bool:
         '''
         ### Return LOL Name
         '''
         self.__cur.execute("SELECT LOLName FROM line WHERE LineId=?",[LineId,])
         return self.__cur.fetchone()["LOLName"]
+
+    def GetAccountByLindId(self, LineId: str) -> str:
+        '''Return LOL accountId by LineId'''
+        self.__cur.execute("SELECT accountId FROM users JOIN line on users.LOLName=line.LOLName WHERE LineId=? ",[LineId])
+        return self.__cur.fetchone()["accountId"]
+
+    def GetLineIdByLOLName(self, LOLName: str) -> str:
+        '''Return LOL LineId  by LOLName'''
+        self.__cur.execute("SELECT LineId FROM line JOIN users on users.LOLName=line.LOLName WHERE line.LOLName=? ",[LOLName])
+        return self.__cur.fetchone()["LineId"]
 
     def GetTableColumn(self, TableName: str) -> list:
         if self.CheckTableExist(TableName):
@@ -229,14 +255,6 @@ class DBAgent():
         ''' Return a list with accountIds'''
         self.__cur.execute("SELECT DISTINCT accountId FROM users")
         return [ _['accountId'] for _ in self.__cur.fetchall()]
-
-    # def GetIdByGame(self) -> list:
-    #     '''### This function will depreciate at product version\n
-    #        ### Use GetIdByUsers() or GetUserDict() instead.
-    #     '''
-    #     print('\033[93m'+"GetIdByGame will Depreciate at product version. Use GetIdByUsers() or GetUserDict() instead."+'\033[0m')
-    #     self.__cur.execute("SELECT DISTINCT accountId FROM game")
-    #     return [ _['accountId'] for _ in self.__cur.fetchall()]
 
     def GetLatestVersion(self) -> str:
         self.__cur.execute("SELECT substr(gameVersion,1,7) as version FROM game ORDER BY gameCreation DESC")

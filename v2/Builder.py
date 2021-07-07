@@ -53,7 +53,7 @@ def _GameInitializer(amount: int=20) -> None:
                 history = AGD.GetPlayerHistory(accountId,idx,idx+amount)
                 history_list = AGD.HistoryReader(history).format_list()
                 Agent._InsertManyGame(history_list)
-                time.sleep(0.1)
+                time.sleep(0.5)
             except IndexError:
                 print(user_dict[accountId],'Finish')
                 break
@@ -109,7 +109,6 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
     '''
     assert amount>0 and amount<=20 and isinstance(amount,int), "\033[91m int Amount>0 && Amount<=20 \033[0m"
     UserDict = Agent.GetUserDict()
-    NewGameIds = []
     # Update game table
     for id in UserDict:
         begin=0
@@ -126,25 +125,25 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
                     idx = NewData.index(gameid)
                     Agent._InsertGame(history_list[idx])
                     count+=1
-                    NewGameIds.append(gameid)
                 else:
                     if logging: print("Gameid:",gameid," is already exists!")
             if count<20: break
         print(UserDict[id],"Finish")
 
     # Update teamstats table
-    for gameId in list(set(NewGameIds)):
+    for gameId in Agent.GetMissTeamStats():
         detail = AGD.GetSingleGameDetail(gameId)
         TeamStats =  AGD.GameDetailReader(detail).format_list()
         Agent._InsertTeamStats(TeamStats)
-        time.sleep(0.1)
+        time.sleep(0.3)
 
     # Update users table
     for id in UserDict:
         history = AGD.GetPlayerHistory(id,0,1)
         player = AGD.HistoryReader(history).playerinfo()
         if player["summonerName"]!=UserDict[id]:
-            Agent._UpdateUserName(id,player["summonerName"])      
+            print("Change {} to {}".format(UserDict[id],player["summonerName"]))
+            Agent._UpdateUserName(id,player["summonerName"])
         time.sleep(0.1)
 
     # Backup database
@@ -153,5 +152,5 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
     
 if __name__=="__main__":
     Agent = DB.DBAgent()
-    # UpdateDatabase(Agent)
-    # Agent._Backup()
+    UpdateDatabase(Agent)
+    Agent._Backup()

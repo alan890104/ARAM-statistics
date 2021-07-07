@@ -83,6 +83,10 @@ def GetChampDetail(version: str, ChampName: str) -> dict:
     res = requests.get(DPREFIX+"cdn/{}/data/zh_TW/champion/{}.json".format(version,ChampName))
     return res.json()
 
+def GetLatestSkinIndex(version: str, ChampName: str) -> int:
+    detail = GetChampDetail(version,ChampName)
+    return detail["data"][ChampName]["skins"][-1]["num"]
+
 def _DownloadProfileIcon(version: str, id: int) -> None:
     res = requests.get(DPREFIX+"cdn/{}/img/profileicon/{}.png".format(version,id),stream=True)
     if res.status_code==200:
@@ -112,8 +116,7 @@ def _DownloadSpell(version: str, SpellName: str) -> None:
                 F.write(chunk)
 
 def _DownloadChampSkin(version: str, ChampName: str) -> None:
-    detail = GetChampDetail(version,ChampName)
-    Latest_Skin_idx = detail["data"][ChampName]["skins"][-1]["num"]
+    Latest_Skin_idx = GetLatestSkinIndex(version, ChampName)
     res = requests.get(DPREFIX+"cdn/img/champion/loading/{}_{}.jpg".format(ChampName,Latest_Skin_idx),stream=True)
     if res.status_code==200:
         with open("ChampSkin/{}.jpg".format(ChampName),'wb') as F:
