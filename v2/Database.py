@@ -1,4 +1,3 @@
-from sys import version
 from AccessGameData import GetVersion, JsonRead
 import os,shutil
 import typing
@@ -17,8 +16,17 @@ class DBAgent():
         self.__con.row_factory = self.dict_factory
         self.__cur = self.__con.cursor()
 
+    def __enter__(self) -> None:
+        return self.__cur
+
+    def __exit__(self, type, value, traceback) -> None:
+        return
+
     def __del__(self):
         self.__con.close()
+
+    def __str__(self) -> str:
+        return "An agent connects to database <{}>".format(self.__path)
 
     def dict_factory(self,cursor,row):
         d = {}
@@ -34,6 +42,12 @@ class DBAgent():
         self.__cur.execute("CREATE TABLE IF NOT EXISTS users( \
                             accountId INT UNIQUE PRIMARY KEY,\
                             LOLName TEXT NOT NULL UNIQUE ) ")
+        self.__con.commit()
+
+    def _CreateTableLine(self) -> None:
+        self.__cur.execute("CREATE TABLE IF NOT EXISTS line( \
+                            LineId TEXT UNIQUE PRIMARY KEY,\
+                            LOLName TEXT NOT NULL UNIQUE )")
         self.__con.commit()
 
     def _CreateTableELO(self) -> None:
@@ -111,7 +125,7 @@ class DBAgent():
         self._CreateTableUser()
         self._CreateTableELO()
         self._CreateTableGame()
-        self._CreateTableTeam()
+        self._CreateTableTeamStats()
         
     def _DestroyTableUser(self) -> None:
         self.__cur.execute("DROP TABLE IF EXISTS users")
@@ -119,6 +133,13 @@ class DBAgent():
 
     def _InsertUser(self,param: typing.Iterable) -> None:
         self.__cur.execute("INSERT INTO users VALUES ({})".format(",".join("?"*len(param))) ,param)
+        self.__con.commit()
+
+    def _InsertLine(self,param: typing.Iterable) -> None:
+        '''
+        - param (LineId,LOLName)
+        '''
+        self.__cur.execute("INSERT INTO line VALUES ({})".format(",".join("?"*len(param))) ,param)
         self.__con.commit()
 
     def _InsertELO(self,param: typing.Iterable) -> None:
@@ -137,6 +158,10 @@ class DBAgent():
     def _InsertTeamStats(self,param: typing.Callable) -> None:
         assert isinstance(param[0],list) or isinstance(param[0],tuple),"param should be 2d list or tuple."
         self.__cur.executemany("INSERT INTO teamstats VALUES ({})".format(",".join("?"*len(param[0]))) ,param)
+        self.__con.commit()
+
+    def _UpdateUserName(self, accountId: int, NewName: str) -> None:
+        self.__cur.execute("UPDATE users SET LOLName=? WHERE accountId=? ",[NewName,accountId])
         self.__con.commit()
 
     def _Query(self, sql: str, param: list=[]) -> dict:
@@ -168,6 +193,13 @@ class DBAgent():
         '''
         self.__cur.execute("SELECT * FROM game WHERE gameId=?",[gameId,])
         return self.__cur.fetchone()!=None
+
+    def GetLOLNameByLineId(self, LineId: str) -> bool:
+        '''
+        ### Return LOL Name
+        '''
+        self.__cur.execute("SELECT LOLName FROM line WHERE LineId=?",[LineId,])
+        return self.__cur.fetchone()["LOLName"]
 
     def GetTableColumn(self, TableName: str) -> list:
         if self.CheckTableExist(TableName):
@@ -234,7 +266,7 @@ class DBAgent():
         else:
             return [ _['gameId'] for _ in self.__cur.fetchall()]
 
-    def GetWinRateByCond(self,accountId: str, category=False, threshold: int=10, **kwargs) -> dict:
+    def GetUserWinRateByCond(self,accountId: str, category=False, threshold: int=10, **kwargs) -> dict:
         '''
         ### Parameters:
         - accountId : your id
@@ -417,6 +449,8 @@ class DBAgent():
         - gameCreation: UTCtimestamp in milisecond. Only search the game after the specified value. 
         - gameDuration: UTCtimestamp in second.Only search the game longer than specified value.
         - gameVersion: str
+        ### Return
+        - If none of the condition meets, will return an empty dictionary.
         '''
         
         condition = " accountId=?  AND gameType='MATCHED_GAME' "
@@ -446,7 +480,7 @@ class DBAgent():
 
         self.__cur.execute("SELECT gameId,gameCreation,gameDuration ,gameMode,championId ,\
         ROUND(AVG( CAST( (kills+assists) AS FLOAT) /  (CASE WHEN deaths==0 THEN 1 ELSE deaths END) ),2) as kda\
-        FROM game WHERE {} GROUP BY championId,gameMode ORDER BY kda DESC".format(condition),input_param)
+        FROM game WHERE {} GROUP BY championId,gameMode ORDER BY kda DESC LIMIT 1".format(condition),input_param)
         result = self.__cur.fetchall()
         if len(result)>0:
             result[0]["gameCreation"] = (datetime.utcfromtimestamp(result[0]['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S")
@@ -525,33 +559,33 @@ def _tWinRate():
     UserDict = Agent.GetUserDict()
     print("###########ALL############")
     for id in UserDict:
-        winrate = Agent.GetWinRateByCond(id)
+        winrate = Agent.GetUserWinRateByCond(id)
         print(UserDict[id],winrate)
     print("\n##########CATEGORY############")
     for id in UserDict:
-        winrate = Agent.GetWinRateByCond(id,category=True)
+        winrate = Agent.GetUserWinRateByCond(id,category=True)
         print(UserDict[id],winrate)
     print("\n##########BLUE TEAM############")
     for id in UserDict:
-        winrate = Agent.GetWinRateByCond(id,teamId=100)
+        winrate = Agent.GetUserWinRateByCond(id,teamId=100)
         print(UserDict[id],winrate)
     print("\n##########15min############")
     for id in UserDict:
-        winrate = Agent.GetWinRateByCond(id,gameDuration=60*15)
+        winrate = Agent.GetUserWinRateByCond(id,gameDuration=60*15)
         print(UserDict[id],winrate)
     print("\n##########BOTTOM LANE############")
     for id in UserDict:
-        winrate = Agent.GetWinRateByCond(id,lane="BOTTOM",gameMode='ARAM')
+        winrate = Agent.GetUserWinRateByCond(id,lane="BOTTOM",gameMode='ARAM')
         print(UserDict[id],winrate)
     print("\n##########version############")
     version = GetVersion()
     for id in UserDict:
-        winrate = Agent.GetWinRateByCond(id,category=True,gameVersion=version)
+        winrate = Agent.GetUserWinRateByCond(id,category=True,gameVersion=version)
         print(UserDict[id],winrate)
     print("\n##########firstBloodKill############")
     version = GetVersion()
     for id in UserDict:
-        winrate = Agent.GetWinRateByCond(id,category=True,firstBloodKill=True)
+        winrate = Agent.GetUserWinRateByCond(id,category=True,firstBloodKill=True)
         print(UserDict[id],winrate)
     print()
 

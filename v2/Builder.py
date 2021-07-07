@@ -1,13 +1,11 @@
 import asyncio
-from os import stat
-import re
 import aiohttp
 import Database
 import AccessGameData as AGD
 import Database as DB
 import time
 
-async def GetRequest(url,session):
+async def _GetRequest(url,session):
     try:
         async with session.get(url) as response:
             res = await response.json()
@@ -15,12 +13,12 @@ async def GetRequest(url,session):
     except Exception as e:
         print(e)
 
-async def Master(URLs):
+async def _Master(URLs):
     '''
     Request Json file in parallel
     '''
     async with aiohttp.ClientSession() as session:
-        ret = await asyncio.gather(*[GetRequest(url, session) for url in URLs])
+        ret = await asyncio.gather(*[_GetRequest(url, session) for url in URLs])
     return ret
 
 def _UserInitializer() -> None:
@@ -79,7 +77,7 @@ def _TeamInitializer(amount: int=5) -> None:
     for i in range(0,len(URLs),amount):
         print("This is time",i)
         URLChunk = URLs[i:i+amount]
-        result = asyncio.run(Master(URLChunk))
+        result = asyncio.run(_Master(URLChunk))
         for detail in result:
             try:
                 stats = AGD.GameDetailReader(detail).format_list()
@@ -106,11 +104,13 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
     3. Check if gameid in list
     4. Write into game table
     5. Load TeamStats
+    6. Update name if change
     6. Backup to tmp folder
     '''
     assert amount>0 and amount<=20 and isinstance(amount,int), "\033[91m int Amount>0 && Amount<=20 \033[0m"
     UserDict = Agent.GetUserDict()
     NewGameIds = []
+    # Update game table
     for id in UserDict:
         begin=0
         while True:
@@ -132,12 +132,22 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
             if count<20: break
         print(UserDict[id],"Finish")
 
+    # Update teamstats table
     for gameId in list(set(NewGameIds)):
         detail = AGD.GetSingleGameDetail(gameId)
         TeamStats =  AGD.GameDetailReader(detail).format_list()
         Agent._InsertTeamStats(TeamStats)
         time.sleep(0.1)
 
+    # Update users table
+    for id in UserDict:
+        history = AGD.GetPlayerHistory(id,0,1)
+        player = AGD.HistoryReader(history).playerinfo()
+        if player["summonerName"]!=UserDict[id]:
+            Agent._UpdateUserName(id,player["summonerName"])      
+        time.sleep(0.1)
+
+    # Backup database
     Agent._Backup()
 
     
