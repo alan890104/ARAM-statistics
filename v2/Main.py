@@ -54,8 +54,8 @@ def HandlePostBack(event):
 def HandleImageMessage(event):
     pass
 
-@handler.add(MessageEvent, message=ImageMessage)
-def HandleImageMessage(event):
+@handler.add(MessageEvent, message=FileMessage)
+def HandleFileMessage(event):
     pass
 
 

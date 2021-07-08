@@ -1,0 +1,249 @@
+{
+  "type": "carousel",
+  "contents": [
+    {
+      "type": "bubble",
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "md",
+        "contents": [
+          {
+            "type": "text",
+            "wrap": true,
+            "weight": "bold",
+            "gravity": "center",
+            "size": "xl",
+            "text": "個人優勢"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "margin": "lg",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "於不同模式中，佔有相對優勢的類別",
+                    "color": "#aaaaaa",
+                    "size": "sm",
+                    "flex": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "button",
+            "action": {
+              "type": "postback",
+              "data": "@specialize",
+              "label": "有哪些類別?"
+            }
+          }
+        ],
+        "paddingBottom": "xs",
+        "paddingTop": "xs"
+      },
+      "styles": {
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "md",
+        "contents": [
+          {
+            "type": "text",
+            "wrap": true,
+            "weight": "bold",
+            "gravity": "center",
+            "size": "xl",
+            "text": "最佳紀錄保持者"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "margin": "lg",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "大家開始打LOL以來的最佳紀錄保持人!",
+                    "color": "#aaaaaa",
+                    "size": "sm",
+                    "flex": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "button",
+            "action": {
+              "type": "postback",
+              "data": "@best",
+              "label": "有哪些最佳紀錄?"
+            }
+          }
+        ],
+        "paddingBottom": "xs",
+        "paddingTop": "xs"
+      },
+      "styles": {
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "md",
+        "contents": [
+          {
+            "type": "text",
+            "wrap": true,
+            "weight": "bold",
+            "gravity": "center",
+            "size": "xl",
+            "text": "最愛用的道具"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "margin": "lg",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "當前版本裡最愛用的道具是?",
+                    "color": "#aaaaaa",
+                    "size": "sm",
+                    "flex": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "button",
+            "action": {
+              "type": "postback",
+              "data": "@item",
+              "label": "我挑裝備的眼光應該不錯吧?"
+            }
+          }
+        ],
+        "paddingBottom": "xs",
+        "paddingTop": "xs"
+      },
+      "styles": {
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "md",
+        "contents": [
+          {
+            "type": "text",
+            "wrap": true,
+            "weight": "bold",
+            "gravity": "center",
+            "size": "xl",
+            "text": "浪費人生計算機"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "margin": "lg",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "你在英雄聯盟中度過的遊戲時間(不包含匹配)",
+                    "color": "#aaaaaa",
+                    "size": "sm",
+                    "flex": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "button",
+            "action": {
+              "type": "postback",
+              "data": "@time",
+              "label": "我到底花了多少時間?"
+            }
+          }
+        ],
+        "paddingBottom": "xs",
+        "paddingTop": "xs"
+      },
+      "styles": {
+        "footer": {
+          "separator": true
+        }
+      }
+    }
+  ]
+}

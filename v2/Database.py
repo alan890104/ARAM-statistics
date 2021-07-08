@@ -203,6 +203,16 @@ class DBAgent():
         self.__cur.execute("SELECT * FROM game WHERE gameId=?",[gameId,])
         return self.__cur.fetchone()!=None
 
+    def CheckLOLNameExist(self, LOLName: str) -> bool:
+        '''
+        * Check LOL Name Exist in line
+        ### Return
+        - True:  LOLName exists
+        - False:  LOLName not exists
+        '''
+        self.__cur.execute("SELECT * FROM line WHERE LOLName=?",[LOLName,])
+        return self.__cur.fetchone()!=None
+
     def GetMissTeamStats(self) -> list:
         '''
         Find the games which has been inserted to game but not in teamstats. 
@@ -304,7 +314,7 @@ class DBAgent():
         - sort : str 'gameMode' or 'ratio' (work when category=True)
         '''
         
-        condition = " accountId=? "
+        condition = " accountId=? AND gameMode in ('ONEFORALL','URF','ARAM','CLASSIC','KINGPORO') "
         input_param = [accountId]
         if "gameType" in kwargs:
             condition += " AND gameType=? "
@@ -561,16 +571,17 @@ class DBAgent():
         Accept one attribute to show the best score in database
         ### Parameter
         - attribute: The attribute of the best RECORD you want to know. Can be sql aggregate command.
+        ### Return
+        - {'record': any, 'accountId': int, 'LOLName': str, 'gameId': int, 'gameCreation': str, 'championId': int}
         '''
         attribute = attribute.strip()
-        self.__cur.execute("SELECT LOLName,MAX(records) as record, gameId, gameCreation,championId  FROM (\
-            SELECT LOLName, MAX({}) as records, gameId, gameCreation, championId FROM game NATURAL JOIN users GROUP BY LOLName ORDER BY gameCreation ASC) ".format(attribute))
+        self.__cur.execute("SELECT accountId,LOLName,MAX(records) as record, gameId, gameCreation,championId  FROM (\
+            SELECT accountId,LOLName, MAX({}) as records, gameId, gameCreation, championId FROM game NATURAL JOIN users GROUP BY LOLName ORDER BY gameCreation ASC) ".format(attribute))
         result = self.__cur.fetchone()
-        print(result)
         if "gameDuration"!=attribute:
-            return {"record": result["record"],"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}
+            return {"record": result["record"],"accountId":result["accountId"],"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}
         else:
-            return {"record": str(timedelta(seconds=result["record"])),"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}
+            return {"record": str(timedelta(seconds=result["record"])),"accountId":result["accountId"],"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}
 
 def _tWinRate():
     Agent = DBAgent()
@@ -593,7 +604,7 @@ def _tWinRate():
         print(UserDict[id],winrate)
     print("\n##########BOTTOM LANE############")
     for id in UserDict:
-        winrate = Agent.GetUserWinRateByCond(id,lane="BOTTOM",gameMode='ARAM')
+        winrate = Agent.GetUserWinRateByCond(id,lane="BOTTOM",gameMode='CLASSIC')
         print(UserDict[id],winrate)
     print("\n##########version############")
     version = GetVersion()

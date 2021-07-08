@@ -1,0 +1,71 @@
+{
+    "type": "carousel",
+    "contents": [
+      {
+        "type": "bubble",
+        "hero": {
+          "type": "image",
+          "size": "full",
+          "aspectRatio": "20:13",
+          "aspectMode": "cover",
+          "url": "https://lh6.googleusercontent.com/proxy/riIbb9jYx8BkHEy7k-w4rpNPZU1-Kbi5Nx9Ro-zgPjqpyUgqDxNhOF2pYmy3Q35SaS6jzWu-p8tyPgz-ycXaHVnqWmuuNtOYkWIcNOmntDbpmb7EAp3_qz1Ac109KssyTTfYVLXuwP41UxKmuMvfn6yHnnOUwFLm-UOa937e5gayNg=s0-d"
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "text",
+              "text": "alankingdom的柔伊",
+              "wrap": true,
+              "weight": "bold",
+              "size": "xl"
+            },
+            {
+              "type": "box",
+              "layout": "baseline",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "30擊殺",
+                  "wrap": true,
+                  "weight": "bold",
+                  "size": "xl",
+                  "flex": 0
+                },
+                {
+                  "type": "text",
+                  "wrap": true,
+                  "weight": "bold",
+                  "size": "sm",
+                  "flex": 0,
+                  "text": "在一場之內"
+                }
+              ]
+            }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "button",
+              "action": {
+                "type": "message",
+                "label": "查看更多",
+                "text": "@echo"
+              }
+            }
+          ]
+        },
+        "styles": {
+          "footer": {
+            "separator": true
+          }
+        }
+      }
+    ]
+  }

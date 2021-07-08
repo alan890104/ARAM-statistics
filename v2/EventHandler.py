@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from typing import Any
 import AccessGameData as AGD
 import Database as DB
@@ -52,16 +53,19 @@ def CommandResp(event, LastCmd: dict, line_bot_api: LineBotApi, Agent: DB.DBAgen
             LineName = profile.display_name
             LOLName = Agent.GetLOLNameByLineId(LineId)
             if not LOLName:
-                Agent._InsertLine([ LineId, Content[10:] ])
-                LOLName = Agent.GetLOLNameByLineId(LineId)
-                Msg = "{}註冊成功!你的召喚師名稱是:{}".format(LineName,LOLName)   
+                if Agent.CheckLOLNameExist():
+                    Msg = "請勿輸入他人的召喚師名稱。"
+                else:
+                    Agent._InsertLine([ LineId, Content[10:] ])
+                    LOLName = Agent.GetLOLNameByLineId(LineId)
+                    Msg = "{}註冊成功!你的召喚師名稱是:{}".format(LineName,LOLName)   
             else:
                 Msg = "{}，你已經註冊過帳號了!你的召喚師名稱是:{}".format(LineName,LOLName)
             return TextSendMessage(text=Msg),LastCmd
     
     if Content[:5]=="@echo":
         '''
-        1. 個人強勢英雄 @specialize
+        1. 個人優勢 @specialize
         2. 愛用道具 @item
         3. 最佳紀錄保持者 @best
         4. 浪費人生計算機 @time
@@ -82,7 +86,7 @@ def PostBackResp(event, LastCmd: dict ,line_bot_api: LineBotApi, Agent: DB.DBAge
         LastCmd[LineId] = PBData
         # label : gameDuration,gameMode,teamId,championId
         contents = AGD.JsonRead("layout\Specialize.json")
-        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽強勢英雄",
+        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽個人優勢",
                                contents=contents),LastCmd
     elif PBData=="@item":
         contents = ItemFlexGenerator(LineId,LOLName,Agent)
@@ -90,7 +94,7 @@ def PostBackResp(event, LastCmd: dict ,line_bot_api: LineBotApi, Agent: DB.DBAge
                                contents=contents),LastCmd
     elif PBData=="@best":
         LastCmd[LineId] = PBData
-        # label : gameDuration,gameMode,teamId,championId,KDA
+        # label : gameDuration,totalDamageDealt,kda,visionScore,totalDamageTaken,totalMinionsKilled,goldEarned,damageDealtToObjectives,timeCCingOthers
         contents = AGD.JsonRead("layout\Best.json")
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
                                contents=contents),LastCmd
@@ -102,10 +106,16 @@ def PostBackResp(event, LastCmd: dict ,line_bot_api: LineBotApi, Agent: DB.DBAge
         if LineId not in LastCmd:
             return TextSendMessage(text="錯誤: 指令發起與執行者不同。"),LastCmd
         if LastCmd[LineId]=="@specialize":
-            pass
+            contents = SpecializeOptionFlexGenerator(LineId,LOLName,PBData,Agent)
             del LastCmd[LineId]
+            return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
+                               contents=contents),LastCmd
         elif LastCmd[LineId]=="@best":
+            contents = BestOptionFlexGenerator(PBData,Agent)
             del LastCmd[LineId]
+            return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
+                               contents=contents),LastCmd
+            
 
 def ItemFlexGenerator(LineId: str,LOLName: str,Agent: DB.DBAgent) -> dict:
     contents = AGD.JsonRead("layout\Item.json")
@@ -139,6 +149,104 @@ def TimeFlexGenerator(LineId: str,LOLName: str,Agent: DB.DBAgent) -> dict:
     contents["body"]["contents"][0]["text"] = "{}天{}小時{}分鐘{}秒".format(times.days,hours,minutes,seconds)
     return contents
 
+def SpecializeOptionFlexGenerator(LineId: str, LOLName:str, PBData: str, Agent: DB.DBAgent) -> dict:
+    '''
+    * PBData: gameDuration,gameMode,teamId,championId,lane
+    '''
+    contents = AGD.JsonRead("layout\Specialize_Options.json")
+    title = "{}勝率".format(LOLName)
+    accountId = Agent.GetAccountByLindId(LineId)
+    if PBData=="gameDuration":
+        result = Agent.GetUserWinRateByCond(accountId,gameDuration=15*60)
+        description = "{}%".format(round(result["ratio"]*100,2))
+        detail = "{}場15分鐘內勝利".format(result["total"])
+    elif PBData=="gameMode":
+        result = Agent.GetUserWinRateByCond(accountId,category=True,sort="ratio")
+        gameMode = list(result.keys())[0]
+        ratio,total = result[gameMode]["ratio"],result[gameMode]["total"]
+        translate = AGD.JsonRead("static\gameModeTrans.json")
+        description = "{}%".format(round(ratio*100,2))
+        detail = "在{}場{}內".format(total,translate[gameMode])
+    elif PBData=="teamId":
+        blue = Agent.GetUserWinRateByCond(accountId,teamId=100)
+        red = Agent.GetUserWinRateByCond(accountId,teamId=200)
+        if red["ratio"]>blue["ratio"]:
+            result = red
+            detail = "比藍方高{}%".format(round((red["ratio"]-blue["ratio"])*100,2))
+        else:
+            result = blue
+            detail = "比紅方高{}%".format(round((blue["ratio"]-red["ratio"])*100,2))
+        description = "{}%".format(round(result["ratio"]*100,2))
+    elif PBData=="championId":
+        year_ago = int((datetime.now()-timedelta(days=365)).timestamp()*1000)
+        result = Agent._Query("SELECT championId,COUNT(*) as total,ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\
+                WHERE accountId=? AND gameCreation>? GROUP BY championId HAVING total>10 ORDER BY ratio DESC",[accountId,year_ago])
+        if len(result)!=0: 
+            result = result[0]
+            Champion = AGD.JsonRead("static\champion.json")
+            description = "{}%".format(round(result["ratio"]*100,2))
+            detail = "共{}場{}(一年內)".format(result["total"],Champion[str(result["championId"])][1])
+        else:
+            description = "數據不足10筆"
+            detail = "..."
+    elif PBData=="lane":
+        year_ago = int((datetime.now()-timedelta(days=365)).timestamp()*1000)
+        result = Agent._Query("SELECT lane,COUNT(*) as total,ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\
+                WHERE accountId=? AND lane!='NONE' AND gameMode='CLASSIC' AND gameCreation>? GROUP BY lane HAVING total>15 ORDER BY ratio DESC",[accountId,year_ago])
+        if len(result)!=0: 
+            result = result[0]
+            description = "{}%".format(round(result["ratio"]*100,2))
+            LanTrans = AGD.JsonRead("static\laneTrans.json")
+            detail = "共{}場{}(一年內)".format(result["total"],LanTrans[result["lane"]])
+        else:
+            description = "數據不足15筆"
+            detail = "..."
+
+    contents["contents"][0]["body"]["contents"][0]["text"] = title
+    contents["contents"][0]["body"]["contents"][1]["contents"][0]["text"] = description
+    contents["contents"][0]["body"]["contents"][1]["contents"][1]["text"] = detail
+
+    return contents
 
 
+def BestOptionFlexGenerator(PBData: str,Agent: DB.DBAgent) -> dict:
+    '''
+    * PBData: gameDuration,totalDamageDealt,kda,visionScore,totalDamageTaken,totalMinionsKilled,goldEarned,damageDealtToObjectives,timeCCingOthers
+    '''
+    contents = AGD.JsonRead("layout\Best_Options.json")
+    Champion = AGD.JsonRead("static\champion.json")
+    if PBData=="kda":
+        result = Agent.GetMAXAttribute("CAST( (kills+assists) AS FLOAT) /  (CASE WHEN deaths==0 THEN 1 ELSE deaths END)")
+        description = "KDA {}".format(round(result["record"]))
+    else:
+        result = Agent.GetMAXAttribute(PBData)
+        if PBData=="gameDuration":
+            description = "{}遊戲時間".format(result["record"])
+        elif PBData=="totalDamageDealt":
+            description = "{}輸出傷害".format(result["record"])
+        elif PBData=="visionScore":
+            description = "{}視野分數".format(result["record"])
+        elif PBData=="totalDamageTaken":
+            description = "{}承受傷害".format(result["record"])
+        elif PBData=="totalMinionsKilled":
+            description = "{}吃兵數".format(result["record"])
+        elif PBData=="goldEarned":
+            description = "{}金幣".format(result["record"])
+        elif PBData=="damageDealtToObjectives":
+            description = "{}對建築傷害".format(result["record"])
+        elif PBData=="timeCCingOthers":
+            description = "{}控場分數".format(result["record"])
+    history = AGD.GetPlayerHistory(result["accountId"],0,1)
+    summonerId = AGD.HistoryReader(history).playerinfo()["summonerId"]
+    ChampName = Champion[str(result["championId"])][1]
+    version = AGD.GetVersion()
+    pic_url = AGD.DPREFIX+"cdn/{}/img/champion/{}.png".format(version,Champion[str(result["championId"])][0])
+    game_url = "https://lol.moa.tw/match/show/{}/{}".format(result["gameId"],summonerId)
 
+    contents["contents"][0]["hero"]["url"] = pic_url
+    contents["contents"][0]["body"]["contents"][0]["text"] = "{}的{}".format(result["LOLName"],ChampName)
+    contents["contents"][0]["body"]["contents"][1]["contents"][0]["text"] = description
+    contents["contents"][0]["footer"]["contents"][0]["action"]["uri"] = game_url
+
+    return contents
+    

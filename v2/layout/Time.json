@@ -1,0 +1,64 @@
+{
+  "type": "bubble",
+  "size": "kilo",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "49天55小時55分鐘55秒",
+        "weight": "bold",
+        "size": "xl"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "lg",
+        "spacing": "xs",
+        "contents": [
+          {
+            "type": "text",
+            "text": "有這時間打LOL",
+            "color": "#aaaaaa",
+            "size": "sm",
+            "flex": 1,
+            "contents": []
+          },
+          {
+            "type": "text",
+            "text": "為什麼不拿來端正自己的品格呢^^",
+            "color": "#aaaaaa",
+            "size": "sm",
+            "flex": 1,
+            "contents": []
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "xs",
+    "contents": [
+      {
+        "type": "button",
+        "style": "link",
+        "height": "sm",
+        "action": {
+          "type": "message",
+          "label": "我還想要了解更多...",
+          "text": "@echo"
+        }
+      }
+    ],
+    "flex": 0
+  },
+  "styles": {
+    "footer": {
+      "separator": true,
+      "separatorColor": "#000000"
+    }
+  }
+}

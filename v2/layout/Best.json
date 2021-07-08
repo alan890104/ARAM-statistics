@@ -1,0 +1,123 @@
+{
+  "type": "bubble",
+  "hero": {
+    "type": "image",
+    "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn97rqoseqKXlYrgqIKmwVzxikZkDBejg4dQ&usqp=CAU",
+    "size": "full",
+    "aspectRatio": "20:13",
+    "aspectMode": "cover",
+    "backgroundColor": "#FFFFFF"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "最高紀錄",
+        "weight": "bold",
+        "size": "xl",
+        "margin": "md"
+      },
+      {
+        "type": "text",
+        "text": "選擇想要查看的單場限制條件",
+        "margin": "md"
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "sm",
+    "contents": [
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "data": "gameDuration",
+          "label": "遊戲時間"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "data": "totalDamageDealt",
+          "label": "最高傷害"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+        "type": "postback",
+        "data": "kda",
+        "label": "KDA"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+        "type": "postback",
+        "data": "visionScore",
+        "label": "視野分數"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+        "type": "postback",
+        "data": "totalDamageTaken",
+        "label": "承受傷害"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+        "type": "postback",
+        "data": "totalMinionsKilled",
+        "label": "吃兵數量"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+        "type": "postback",
+        "data": "goldEarned",
+        "label": "賺取金錢"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+        "type": "postback",
+        "data": "damageDealtToObjectives",
+        "label": "拆塔傷害"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+        "type": "postback",
+        "data": "timeCCingOthers",
+        "label": "控場分數"
+        },
+        "height": "sm"
+      }
+    ],
+    "flex": 0
+  },
+  "styles": {
+    "footer": {
+      "separator": true
+    }
+  }
+}

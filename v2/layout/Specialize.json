@@ -1,0 +1,87 @@
+{
+  "type": "bubble",
+  "hero": {
+    "type": "image",
+    "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn97rqoseqKXlYrgqIKmwVzxikZkDBejg4dQ&usqp=CAU",
+    "size": "full",
+    "aspectRatio": "20:13",
+    "aspectMode": "cover",
+    "backgroundColor": "#FFFFFF"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "個人勝率表現",
+        "weight": "bold",
+        "size": "xl",
+        "margin": "md"
+      },
+      {
+        "type": "text",
+        "text": "選擇想要查看的限制條件",
+        "margin": "md"
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "sm",
+    "contents": [
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "data": "gameDuration",
+          "label": "遊戲時間"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "data": "gameMode",
+          "label": "遊戲模式"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "data": "teamId",
+          "label": "紅藍方"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "data": "championId",
+          "label": "英雄"
+        },
+        "height": "sm"
+      },
+      {
+        "type": "button",
+        "action": {
+          "type": "postback",
+          "data": "lane",
+          "label": "路線"
+        },
+        "height": "sm"
+      }
+    ],
+    "flex": 0
+  },
+  "styles": {
+    "footer": {
+      "separator": true
+    }
+  }
+}

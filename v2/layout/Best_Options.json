@@ -1,0 +1,75 @@
+{
+    "type": "carousel",
+    "contents": [
+      {
+        "type": "bubble",
+        "hero": {
+          "type": "image",
+          "size": "full",
+          "aspectRatio": "20:13",
+          "aspectMode": "cover",
+          "url": "https://ddragon.leagueoflegends.com/cdn/11.13.1/img/champion/Zoe.png"
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "text",
+              "text": "alankingdom的柔伊",
+              "wrap": true,
+              "weight": "bold",
+              "size": "xl"
+            },
+            {
+              "type": "box",
+              "layout": "baseline",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "30擊殺",
+                  "wrap": true,
+                  "weight": "bold",
+                  "size": "xl",
+                  "flex": 0
+                },
+                {
+                  "type": "text",
+                  "wrap": true,
+                  "weight": "bold",
+                  "size": "sm",
+                  "flex": 0,
+                  "text": "在一場之內"
+                }
+              ]
+            }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "button",
+              "style": "primary",
+              "action": {
+                "type": "uri",
+                "label": "前往朝聖",
+                "uri": "https://linecorp.com"
+              }
+            },
+            {
+              "type": "button",
+              "action": {
+                "type": "message",
+                "label": "查看更多",
+                "text": "@echo"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
