@@ -120,7 +120,7 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
             NewData      = HR.gameids()
             count = 0
             for gameid in NewData:
-                if not Agent.CheckGameIdExist(gameid):
+                if not Agent.CheckUserGameIdExist(id,gameid):
                     print(gameid," insertion!")
                     idx = NewData.index(gameid)
                     Agent._InsertGame(history_list[idx])
@@ -132,6 +132,7 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
 
     # Update teamstats table
     for gameId in Agent.GetMissTeamStats():
+        print("Teamstats add {}".format(gameId))
         detail = AGD.GetSingleGameDetail(gameId)
         TeamStats =  AGD.GameDetailReader(detail).format_list()
         Agent._InsertTeamStats(TeamStats)

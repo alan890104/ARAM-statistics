@@ -8,3 +8,6 @@ static/*.db
 tmp
 !static/*.json
 !layout/*.json
+Pytessesract
+OCR.py
+Image

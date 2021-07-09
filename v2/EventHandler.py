@@ -31,37 +31,47 @@ def GetDirSize(Location: os.PathLike) -> int:
                 total_size += os.path.getsize(fp)
     return total_size
 
-def CommandResp(event, LastCmd: dict, line_bot_api: LineBotApi, Agent: DB.DBAgent) -> Any:
+def CommandResp(event, line_bot_api: LineBotApi) -> Any:
     '''
     ### Receive text event and response
     '''
     LineId = event.source.user_id
     Content = event.message.text.strip()
-    if not Agent.GetLOLNameByLineId(LineId):
-        if isinstance(event.source, SourceUser):
-            profile = line_bot_api.get_profile(LineId)
-            LineName = profile.display_name
-            Msg = "用戶{}尚未登錄資料庫, 請使用指令連動自己的LOL召喚師名稱。\
-                   範例: @register alankingdom".format(LineName)
-            return TextSendMessage(text=Msg),LastCmd
+    Agent=DB.DBAgent()
 
     if Content[:9]=="@register":
         if len(Content.split(maxsplit=1))!=2:
-            return TextSendMessage(text="格式錯誤。範例: @register alankingdom"),LastCmd
-        if isinstance(event.source, SourceUser):
+            return TextSendMessage(text="格式錯誤，請輸入你的召喚師名稱。範例: @register alankingdom")
+        try:
             profile = line_bot_api.get_profile(LineId)
             LineName = profile.display_name
-            LOLName = Agent.GetLOLNameByLineId(LineId)
-            if not LOLName:
-                if Agent.CheckLOLNameExist():
-                    Msg = "請勿輸入他人的召喚師名稱。"
-                else:
-                    Agent._InsertLine([ LineId, Content[10:] ])
-                    LOLName = Agent.GetLOLNameByLineId(LineId)
-                    Msg = "{}註冊成功!你的召喚師名稱是:{}".format(LineName,LOLName)   
+            print(LineId,LineName)
+        except:
+            return TextSendMessage(text="請將你的Line更新至最新版本，並加我為好友")
+        LOLName = Agent.GetLOLNameByLineId(LineId)
+        if not LOLName:
+            if Agent.CheckLOLNameExist(LOLName):
+                Msg = "請勿輸入他人的召喚師名稱。"
+                return TextSendMessage(text=Msg)
             else:
-                Msg = "{}，你已經註冊過帳號了!你的召喚師名稱是:{}".format(LineName,LOLName)
-            return TextSendMessage(text=Msg),LastCmd
+                Agent._InsertLine([ LineId, Content[10:].strip() ])
+                LOLName = Agent.GetLOLNameByLineId(LineId)
+                Msg = "用戶{}註冊成功!你的召喚師名稱是:{}".format(LineName,LOLName)   
+                return TextSendMessage(text=Msg)
+        else:
+            Msg = "{}，你已經註冊過帳號了!你的召喚師名稱是:{}".format(LineName,LOLName)
+            return TextSendMessage(text=Msg)
+
+    elif not Agent.GetLOLNameByLineId(LineId):
+        # if isinstance(event.source, SourceUser):
+        try:
+            profile = line_bot_api.get_profile(LineId)
+            LineName = profile.display_name
+            print(LineId,LineName)
+        except:
+            return TextSendMessage(text="請將你的Line更新至最新版本，並加我為好友")
+        Msg = "用戶{}尚未登錄資料庫, 請先加入此帳號好友並使用指令連動自己的LOL召喚師名稱。範例: @register alankingdom".format(LineName)
+        return TextSendMessage(text=Msg)
     
     if Content[:5]=="@echo":
         '''
@@ -72,50 +82,74 @@ def CommandResp(event, LastCmd: dict, line_bot_api: LineBotApi, Agent: DB.DBAgen
         '''
         contents = AGD.JsonRead("layout\WelcomeInterface.json")
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽此訊息",
-                               contents=contents),LastCmd
+                               contents=contents)
 
+    return None
 
-def PostBackResp(event, LastCmd: dict ,line_bot_api: LineBotApi, Agent: DB.DBAgent) -> Any:
+def PostBackResp(event, line_bot_api: LineBotApi) -> Any:
     '''
     ### Receive postback event and response
     '''
+    Agent=DB.DBAgent()
     LineId = event.source.user_id
     PBData = event.postback.data
     LOLName = Agent.GetLOLNameByLineId(LineId)
+    if not LOLName:
+        try:
+            profile = line_bot_api.get_profile(LineId)
+            LineName = profile.display_name
+            print(LineId,LineName)
+        except:
+            return TextSendMessage(text="請將你的Line更新至最新版本，並加我為好友")
+        Msg = "用戶{}尚未登錄資料庫, 請先加入此帳號好友並使用指令連動自己的LOL召喚師名稱。範例: @register alankingdom".format(LineName)
+        return TextSendMessage(text=Msg)
     if PBData=="@specialize":
-        LastCmd[LineId] = PBData
         # label : gameDuration,gameMode,teamId,championId
         contents = AGD.JsonRead("layout\Specialize.json")
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽個人優勢",
-                               contents=contents),LastCmd
+                               contents=contents)
     elif PBData=="@item":
         contents = ItemFlexGenerator(LineId,LOLName,Agent)
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最愛道具",
-                               contents=contents),LastCmd
+                               contents=contents)
     elif PBData=="@best":
-        LastCmd[LineId] = PBData
         # label : gameDuration,totalDamageDealt,kda,visionScore,totalDamageTaken,totalMinionsKilled,goldEarned,damageDealtToObjectives,timeCCingOthers
         contents = AGD.JsonRead("layout\Best.json")
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
-                               contents=contents),LastCmd
+                               contents=contents)
     elif PBData=="@time":
-        contents = TimeFlexGenerator(LineId,Agent)
+        contents = TimeFlexGenerator(LineId,LOLName,Agent)
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽花費時間",
-                               contents=contents),LastCmd
-    else:
-        if LineId not in LastCmd:
-            return TextSendMessage(text="錯誤: 指令發起與執行者不同。"),LastCmd
-        if LastCmd[LineId]=="@specialize":
-            contents = SpecializeOptionFlexGenerator(LineId,LOLName,PBData,Agent)
-            del LastCmd[LineId]
-            return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
-                               contents=contents),LastCmd
-        elif LastCmd[LineId]=="@best":
-            contents = BestOptionFlexGenerator(PBData,Agent)
-            del LastCmd[LineId]
-            return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
-                               contents=contents),LastCmd
+                               contents=contents)
+    elif PBData[:11]=="@specialize":
+        contents = SpecializeOptionFlexGenerator(LineId,LOLName,PBData[12:],Agent)
+        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
+                            contents=contents)
+    elif PBData[:5]=="@best":
+        contents = BestOptionFlexGenerator(PBData[6:],Agent)
+        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
+                            contents=contents)
             
+def FileResp(event, line_bot_api: LineBotApi) -> Any:
+    LineId = event.source.user_id
+    if LineId=="Uea3f780dd528bcb2ff99fcaa1287d3f5": # my line id
+        MsgContent = line_bot_api.get_message_content(event.message.id)
+        FileName = event.message.file_name
+        with open("Upload/{}".format(FileName),'wb') as F:
+            for chunk in MsgContent.iter_content():
+                F.write(chunk)
+        return TextSendMessage(text="已儲存檔案:{}".format(FileName))
+
+def ImageResp(event, line_bot_api: LineBotApi) -> Any:
+    LineId = event.source.user_id
+    if LineId=="Uea3f780dd528bcb2ff99fcaa1287d3f5": # my line id
+        MsgContent = line_bot_api.get_message_content(event.message.id)
+        Now = int((datetime.now()).timestamp()*1000)
+        FileName = "{}.jpg".format(Now)
+        with open("Image/{}".format(FileName),'wb') as F:
+            for chunk in MsgContent.iter_content():
+                F.write(chunk)
+        return TextSendMessage(text="已儲存檔案:{}".format(FileName))
 
 def ItemFlexGenerator(LineId: str,LOLName: str,Agent: DB.DBAgent) -> dict:
     contents = AGD.JsonRead("layout\Item.json")
@@ -130,11 +164,11 @@ def ItemFlexGenerator(LineId: str,LOLName: str,Agent: DB.DBAgent) -> dict:
     contents["body"]["contents"][1]["contents"][1]["contents"][1]["contents"][0]["text"] = ItemName[str(items_key[0])]
     contents["body"]["contents"][1]["contents"][1]["contents"][2]["contents"][0]["text"] = "{}次".format(items_value[0])
 
-    contents["body"]["contents"][3]["contents"][0]["url"] = AGD.DPREFIX+"cdn/{}/img/item/{}.png".format(version,items_key[1])
+    contents["body"]["contents"][3]["contents"][0]["contents"][0]["url"] = AGD.DPREFIX+"cdn/{}/img/item/{}.png".format(version,items_key[1])
     contents["body"]["contents"][3]["contents"][1]["contents"][1]["contents"][0]["text"] = ItemName[str(items_key[1])]
     contents["body"]["contents"][3]["contents"][1]["contents"][2]["contents"][0]["text"] = "{}次".format(items_value[1])
 
-    contents["body"]["contents"][4]["contents"][0]["url"] = AGD.DPREFIX+"cdn/{}/img/item/{}.png".format(version,items_key[2])
+    contents["body"]["contents"][4]["contents"][0]["contents"][0]["url"] = AGD.DPREFIX+"cdn/{}/img/item/{}.png".format(version,items_key[2])
     contents["body"]["contents"][4]["contents"][1]["contents"][1]["contents"][0]["text"] = ItemName[str(items_key[2])]
     contents["body"]["contents"][4]["contents"][1]["contents"][2]["contents"][0]["text"] = "{}次".format(items_value[2])
     return contents
@@ -173,10 +207,11 @@ def SpecializeOptionFlexGenerator(LineId: str, LOLName:str, PBData: str, Agent: 
         if red["ratio"]>blue["ratio"]:
             result = red
             detail = "比藍方高{}%".format(round((red["ratio"]-blue["ratio"])*100,2))
+            description = "紅方{}%".format(round(result["ratio"]*100,2))
         else:
             result = blue
             detail = "比紅方高{}%".format(round((blue["ratio"]-red["ratio"])*100,2))
-        description = "{}%".format(round(result["ratio"]*100,2))
+            description = "藍方{}%".format(round(result["ratio"]*100,2))
     elif PBData=="championId":
         year_ago = int((datetime.now()-timedelta(days=365)).timestamp()*1000)
         result = Agent._Query("SELECT championId,COUNT(*) as total,ROUND((CAST(SUM(win) AS FLOAT)/CAST(COUNT(win) AS FLOAT)),4) as ratio FROM game\

@@ -35,7 +35,7 @@
         "type": "button",
         "action": {
           "type": "postback",
-          "data": "gameDuration",
+          "data": "@best gameDuration",
           "label": "遊戲時間"
         },
         "height": "sm"
@@ -44,8 +44,8 @@
         "type": "button",
         "action": {
           "type": "postback",
-          "data": "totalDamageDealt",
-          "label": "最高傷害"
+          "data": "@best totalDamageDealt",
+          "label": "對英雄傷害"
         },
         "height": "sm"
       },
@@ -53,7 +53,7 @@
         "type": "button",
         "action": {
         "type": "postback",
-        "data": "kda",
+        "data": "@best kda",
         "label": "KDA"
         },
         "height": "sm"
@@ -62,7 +62,7 @@
         "type": "button",
         "action": {
         "type": "postback",
-        "data": "visionScore",
+        "data": "@best visionScore",
         "label": "視野分數"
         },
         "height": "sm"
@@ -71,7 +71,7 @@
         "type": "button",
         "action": {
         "type": "postback",
-        "data": "totalDamageTaken",
+        "data": "@best totalDamageTaken",
         "label": "承受傷害"
         },
         "height": "sm"
@@ -80,7 +80,7 @@
         "type": "button",
         "action": {
         "type": "postback",
-        "data": "totalMinionsKilled",
+        "data": "@best totalMinionsKilled",
         "label": "吃兵數量"
         },
         "height": "sm"
@@ -89,7 +89,7 @@
         "type": "button",
         "action": {
         "type": "postback",
-        "data": "goldEarned",
+        "data": "@best goldEarned",
         "label": "賺取金錢"
         },
         "height": "sm"
@@ -98,8 +98,8 @@
         "type": "button",
         "action": {
         "type": "postback",
-        "data": "damageDealtToObjectives",
-        "label": "拆塔傷害"
+        "data": "@best damageDealtToObjectives",
+        "label": "對建築傷害"
         },
         "height": "sm"
       },
@@ -107,7 +107,7 @@
         "type": "button",
         "action": {
         "type": "postback",
-        "data": "timeCCingOthers",
+        "data": "@best timeCCingOthers",
         "label": "控場分數"
         },
         "height": "sm"

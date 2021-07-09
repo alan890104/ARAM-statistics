@@ -194,13 +194,13 @@ class DBAgent():
         self.__cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?",[TableName,])
         return self.__cur.fetchone()!=None
 
-    def CheckGameIdExist(self,gameId: int) -> bool:
+    def CheckUserGameIdExist(self,accountId: int,gameId: int) -> bool:
         '''
         ### Return
-        - True:  gameId exists
-        - False:  gameId not exists
+        - True:  accountId,gameId exists
+        - False:  accountId,gameId not exists
         '''
-        self.__cur.execute("SELECT * FROM game WHERE gameId=?",[gameId,])
+        self.__cur.execute("SELECT * FROM game WHERE accountId=? AND gameId=?",[accountId,gameId,])
         return self.__cur.fetchone()!=None
 
     def CheckLOLNameExist(self, LOLName: str) -> bool:
@@ -220,12 +220,13 @@ class DBAgent():
         self.__cur.execute("SELECT gameId FROM game EXCEPT SELECT gameId FROM teamstats")
         return [_["gameId"] for _ in  self.__cur.fetchall()]
 
-    def GetLOLNameByLineId(self, LineId: str) -> bool:
+    def GetLOLNameByLineId(self, LineId: str) -> str:
         '''
-        ### Return LOL Name
+        ### Return LOL Name or None if not exist
         '''
         self.__cur.execute("SELECT LOLName FROM line WHERE LineId=?",[LineId,])
-        return self.__cur.fetchone()["LOLName"]
+        result = self.__cur.fetchone()
+        return result["LOLName"] if result!=None else None
 
     def GetAccountByLindId(self, LineId: str) -> str:
         '''Return LOL accountId by LineId'''

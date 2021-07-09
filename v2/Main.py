@@ -2,18 +2,23 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, ImageMessage, FileMessage
+    MessageEvent, TextMessage, ImageMessage, FileMessage
 )
 from linebot.models.events import PostbackEvent
 import AccessGameData as AGD
 import Database as DB
 import EventHandler as EH
 
+# Origin Route = https://lol-winrate.herokuapp.com/callback
+
 app = Flask(__name__)
 Secrets = AGD.JsonRead("secret/token.json")
 line_bot_api = LineBotApi(Secrets["ChannelAccessToken"])
 handler = WebhookHandler(Secrets["ChanelSecret"])
-LastCmd = dict()
+
+@app.route("/",methods=["GET","POST"])
+def index():
+    return "OK"
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -37,30 +42,33 @@ def HandleTextMessage(event):
     '''
     ### Handle text message from line except "deadbeef"
     '''
-    global LastCmd
     if event.source.user_id == "Udeadbeefdeadbeefdeadbeefdeadbeef": return
     Token = event.reply_token
-    Reply,LastCmd= EH.CommandResp(event,LastCmd,line_bot_api)
-    line_bot_api.reply_message(Token,Reply)
+    Reply = EH.CommandResp(event,line_bot_api)
+    if Reply!=None:
+        line_bot_api.reply_message(Token,Reply)
 
 @handler.add(PostbackEvent)
 def HandlePostBack(event):
-    global LastCmd
     Token = event.reply_token
-    Reply,LastCmd = EH.PostBackResp(event,LastCmd,line_bot_api)
+    Reply = EH.PostBackResp(event,line_bot_api)
     line_bot_api.reply_message(Token,Reply)
 
 @handler.add(MessageEvent, message=ImageMessage)
 def HandleImageMessage(event):
-    pass
+    Token = event.reply_token
+    Reply = EH.ImageResp(event,line_bot_api)
+    if Reply!=None:
+        line_bot_api.reply_message(Token,Reply)
 
 @handler.add(MessageEvent, message=FileMessage)
 def HandleFileMessage(event):
-    pass
-
-
+    Token = event.reply_token
+    Reply = EH.FileResp(event,line_bot_api)
+    if Reply!=None:
+        line_bot_api.reply_message(Token,Reply)
 
 
 if __name__ == "__main__":
-    pass
-    # app.run()
+    app.run(host="0.0.0.0",port=5000,debug=True)
+    # app.run(host="0.0.0.0",port=5000,ssl_context=('secret/cert.pem', 'secret/key.pem'))
