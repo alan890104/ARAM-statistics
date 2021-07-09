@@ -150,8 +150,24 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
     # Backup database
     Agent._Backup()
 
-    
+def UpdateVersion():
+    with open("__version__.py",'r') as F:
+        OldVersion = F.read()
+    CurrentVersion = AGD.GetVersion()
+    if CurrentVersion!=OldVersion:
+        Champ = AGD.GetChampName(CurrentVersion)
+        Item  = AGD.GetItemName(CurrentVersion)
+        spell = AGD.GetSpellName(CurrentVersion)
+        AGD.JsonWrite(Champ,"static\champion.json")
+        AGD.JsonWrite(Item,"static\item.json")
+        AGD.JsonWrite(spell,"static\spell.json")
+        with open("__version__.py",'w') as F:
+            F.write('__version__ = "{}" '.format(CurrentVersion))
+
+
 if __name__=="__main__":
     Agent = DB.DBAgent()
     UpdateDatabase(Agent)
     Agent._Backup()
+    # UpdateVersion()
+    # print(Agent._Query("SELECT DISTINCT gameMode From game"))

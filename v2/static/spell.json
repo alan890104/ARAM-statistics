@@ -1,15 +1,7 @@
 {
-    "21": [
-        "SummonerBarrier",
-        "光盾"
-    ],
     "1": [
         "SummonerBoost",
         "淨化"
-    ],
-    "14": [
-        "SummonerDot",
-        "點燃"
     ],
     "3": [
         "SummonerExhaust",
@@ -27,9 +19,25 @@
         "SummonerHeal",
         "治癒"
     ],
+    "11": [
+        "SummonerSmite",
+        "重擊"
+    ],
+    "12": [
+        "SummonerTeleport",
+        "傳送"
+    ],
     "13": [
         "SummonerMana",
         "清晰"
+    ],
+    "14": [
+        "SummonerDot",
+        "點燃"
+    ],
+    "21": [
+        "SummonerBarrier",
+        "光盾"
     ],
     "30": [
         "SummonerPoroRecall",
@@ -39,20 +47,16 @@
         "SummonerPoroThrow",
         "普羅投擲"
     ],
-    "11": [
-        "SummonerSmite",
-        "重擊"
+    "32": [
+        "SummonerSnowball",
+        "標記"
     ],
     "39": [
         "SummonerSnowURFSnowball_Mark",
         "標記"
     ],
-    "32": [
-        "SummonerSnowball",
-        "標記"
-    ],
-    "12": [
-        "SummonerTeleport",
-        "傳送"
+    "54": [
+        "Summoner_UltBook_Placeholder",
+        "預留欄位"
     ]
 }
