@@ -186,7 +186,7 @@ def GetELO():
 def ELOTransform(Tier: dict,value: int) -> str:
     '''
     ### Parameter
-    - ref : a dict of reference tier
+    - tier : a dict of reference tier
     - value : your ELO (隱分)
 
     ### Return

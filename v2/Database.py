@@ -310,6 +310,27 @@ class DBAgent():
         else:
             return [ _['gameId'] for _ in self.__cur.fetchall()]
 
+    def GetLatestELOByAccount(self,accountId: str) -> dict:
+        '''
+        Return latest elo score group by gameMode
+        ###  只有最新紀錄在半年內的才會回傳喔
+
+        ### Return (MAY BE empty{} IF NOT EXIST)
+        - key : title ex: 隨機單中
+        - value : score
+        '''
+        ret_obj = dict()
+        half_year = (datetime.now()-timedelta(days=182)).strftime("%Y%m%d")
+        with self.__con:
+            self.__cur.execute("SELECT DISTINCT title FROM elo WHERE accountId=? AND sqltime>? ",[accountId,half_year])
+            titles = [_["title"] for _ in self.__cur.fetchall()]
+            if len(titles)==0: return ret_obj
+            for title in titles:
+                self.__cur.execute("SELECT title,score FROM elo WHERE accountId=? AND title=? ORDER BY sqltime DESC LIMIT 1",[accountId,title])
+                result = self.__cur.fetchone()
+                ret_obj[result["title"]] = result["score"]
+            return ret_obj
+
     def GetUserWinRateByCond(self,accountId: str, category=False, threshold: int=10, **kwargs) -> dict:
         '''
         ### Parameters:
@@ -721,6 +742,18 @@ def _tFavoriteItem():
         # print(favorite)
         for f in favorite:
             print("\t{}:{}次".format(item[str(f)],favorite[f]) )
+
+def _tGetELO():
+    from AccessGameData import ELOTransform,Tier
+    Agent = DBAgent()
+    UserDict = Agent.GetUserDict()
+    for id in UserDict:
+        result = Agent.GetLatestELOByAccount(id)
+        if len(result)>0: 
+            print(UserDict[id])
+            for gameMode in result:
+                print(gameMode,ELOTransform(Tier,result[gameMode]),result[gameMode])
+            print()
 
 if __name__ == "__main__":
     pass

@@ -1,6 +1,5 @@
-from Test import Agent
-import re
-from flask import Flask, request, abort
+import os
+from flask import Flask, request, abort,send_from_directory
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
@@ -83,7 +82,7 @@ def HandleFileMessage(event):
         line_bot_api.reply_message(Token,Reply)
 
 @scheduler.scheduled_job("cron",hour='1,13')
-def Update_Version_And_Database() -> None:
+def Update_Version_Game_Team_EVERY_DAY() -> None:
     '''
     Lock the bot while updating version and DB
     (1:00 and 13:00 are times to update)
@@ -94,15 +93,31 @@ def Update_Version_And_Database() -> None:
     BLD.UpdateGameTeamTable()
     UPDATE_SIGNAL = False
 
+@scheduler.scheduled_job("cron",day_of_week="sun",hour=13)
+def Update_ELO_EVERY_SUN() -> None:
+    '''
+    Lock the bot while updating version and DB
+    (1:00 and 13:00 are times to update)
+    '''
+    global UPDATE_SIGNAL
+    UPDATE_SIGNAL = True
+    BLD.UpdateELO()
+    UPDATE_SIGNAL = False
+
 @scheduler.scheduled_job("interval",days=5)
-def BackUpDatabase() -> None:
+def BackUpDatabase_EVERY_FIVE_DAYS() -> None:
     '''
     Copy database to tmp folder every 5 days
     '''
     Agent = DB.DBAgent()
     Agent._Backup()
 
+@app.route('/rankimg/<path:filename>', methods=['GET', 'POST'])
+def PictureProvider(filename):
+    uploads = os.path.join(app.root_path,"static\Rank")
+    return send_from_directory(directory=uploads, filename=filename)
+
 if __name__ == "__main__":
-    scheduler.start()
+    # scheduler.start()
     app.run(host="0.0.0.0",port=5000,debug=True)
     # app.run(host="0.0.0.0",port=5000,ssl_context=('secret/cert.pem', 'secret/key.pem'))

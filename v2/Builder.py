@@ -193,8 +193,10 @@ def UpdateELO() -> None:
     Helper = ELOHelper()
     InsertList = [_ for _ in Helper.GetLatestELO(UserDict) if not Agent.CheckELORecordExist(_[0],_[1],_[3])]
     if len(InsertList)>0:
+        print("Detect Change on ELO, start to insert.")
         Agent._InsertManyELO(InsertList)
 
 if __name__=="__main__":
     Agent = DB.DBAgent()
     UpdateGameTeamTable(Agent)
+    # UpdateELO()

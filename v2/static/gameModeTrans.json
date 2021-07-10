@@ -1,9 +1,13 @@
 {
-    "ONEFORALL":"鏡像對決",
+    "ONEFORALL":"無限死鬥",
     "URF":"阿福快打",
     "ARAM":"隨機單中",
     "CLASSIC":"經典模式",
     "KINGPORO":"普羅王傳說",
     "NEXUSBLITZ":"閃電急擊",
-    "ULTBOOK":"終極法書"
+    "ULTBOOK":"終極法書",
+    "TUTORIAL":"教學模式",
+    "DOOMBOTSTEEMO":"夢魘電腦",
+    "ODYSSEY":"奧德賽",
+    "ASSASSINATE":"血月獵殺"
 }
