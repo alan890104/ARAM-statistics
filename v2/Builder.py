@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import Database
 import AccessGameData as AGD
+from Crawler import ELOHelper
 import Database as DB
 import time
 
@@ -86,12 +87,27 @@ def _TeamInitializer(amount: int=5) -> None:
                 print(detail)
         time.sleep(0.3)
     
+def _ELOInitializer() -> None:
+    '''
+    ### Initialize the database with team statistics
+    '''
+    Agent = DB.DBAgent()
+    if Agent.CheckTableExist("elo"):
+        raise Exception("\033[91m Table 'elo' already exist, please drop it first. \033[0m")
+    Agent._CreateTableELO()
+    UserDict = Agent.GetUserDict()
+    Helper = ELOHelper()
+    InsertList = Helper.GetOverAllELO(UserDict)
+    if len(InsertList)>0:
+        Agent._InsertManyELO(InsertList)
+
 def _Initializer() -> None:
     _UserInitializer()
     _GameInitializer()
     _TeamInitializer()
+    _ELOInitializer()
 
-def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False) -> None:
+def UpdateGameTeamTable(Agent: Database.DBAgent, amount: int=20, logging: bool=False) -> None:
     '''
     ### To update the game table EVERY INTERVAL
     ### Parameter
@@ -147,27 +163,38 @@ def UpdateDatabase(Agent: Database.DBAgent, amount: int=20, logging: bool=False)
             Agent._UpdateUserName(id,player["summonerName"])
         time.sleep(0.1)
 
-    # Backup database
-    Agent._Backup()
-
-def UpdateVersion():
+def UpdateVersion() -> None:
+    '''
+    if version != newversion:  
+    1. update champion
+    2. update item
+    3. update spellname
+    4. update __version__
+    '''
     with open("__version__.py",'r') as F:
         OldVersion = F.read()
     CurrentVersion = AGD.GetVersion()
     if CurrentVersion!=OldVersion:
-        Champ = AGD.GetChampName(CurrentVersion)
-        Item  = AGD.GetItemName(CurrentVersion)
-        spell = AGD.GetSpellName(CurrentVersion)
-        AGD.JsonWrite(Champ,"static\champion.json")
-        AGD.JsonWrite(Item,"static\item.json")
-        AGD.JsonWrite(spell,"static\spell.json")
         with open("__version__.py",'w') as F:
             F.write('__version__ = "{}" '.format(CurrentVersion))
-
+    Champ = AGD.GetChampName(CurrentVersion)
+    Item  = AGD.GetItemName(CurrentVersion)
+    spell = AGD.GetSpellName(CurrentVersion)
+    AGD.JsonWrite(Champ,"static\champion.json")
+    AGD.JsonWrite(Item,"static\item.json")
+    AGD.JsonWrite(spell,"static\spell.json")
+        
+def UpdateELO() -> None:
+    '''
+    ### Initialize the database with team statistics
+    '''
+    Agent = DB.DBAgent()
+    UserDict = Agent.GetUserDict()
+    Helper = ELOHelper()
+    InsertList = [_ for _ in Helper.GetLatestELO(UserDict) if not Agent.CheckELORecordExist(_[0],_[1],_[3])]
+    if len(InsertList)>0:
+        Agent._InsertManyELO(InsertList)
 
 if __name__=="__main__":
     Agent = DB.DBAgent()
-    UpdateDatabase(Agent)
-    Agent._Backup()
-    # UpdateVersion()
-    # print(Agent._Query("SELECT DISTINCT gameMode From game"))
+    UpdateGameTeamTable(Agent)

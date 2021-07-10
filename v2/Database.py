@@ -55,12 +55,14 @@ class DBAgent():
 
     def _CreateTableELO(self) -> None:
         self.__cur.execute("CREATE TABLE  IF NOT EXISTS elo(\
-                    accoundId INT PRIMARY KEY,\
-                    gameMode TEXT NOT NULL,\
-                    sqltime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\
-                    FOREIGN KEY (accoundId) REFERENCES users (accoundId) \
-                    ON DELETE CASCADE \
-                    ON UPDATE CASCADE )")
+                            accountId INT NOT NULL,\
+                            title TEXT NOT NULL,\
+                            score INT NOT NULL,\
+                            sqltime DATETIME NOT NULL,\
+                            PRIMARY KEY (accountId,title,sqltime),\
+                            FOREIGN KEY (accountId) REFERENCES users (accountId) \
+                            ON DELETE CASCADE \
+                            ON UPDATE CASCADE )")
         self.__con.commit()
 
     def _CreateTableGame(self) -> None:
@@ -151,8 +153,9 @@ class DBAgent():
         self.__cur.execute("INSERT INTO line VALUES ({})".format(",".join("?"*len(param))) ,param)
         self.__con.commit()
 
-    def _InsertELO(self,param: typing.Iterable) -> None:
-        self.__cur.execute("INSERT INTO elo VALUES ({})".format(",".join("?"*len(param))) ,param)
+    def _InsertManyELO(self,param: typing.Iterable) -> None:
+        assert isinstance(param[0],list) or isinstance(param[0],tuple),"param should be 2d list or tuple."
+        self.__cur.executemany("INSERT INTO elo VALUES ({})".format(",".join("?"*len(param[0]))) ,param)
         self.__con.commit()
 
     def _InsertGame(self,param: typing.Iterable) -> None:
@@ -205,12 +208,24 @@ class DBAgent():
 
     def CheckLOLNameExist(self, LOLName: str) -> bool:
         '''
-        * Check LOL Name Exist in line
+        * Check LOL Name Exist in line  
+        
         ### Return
         - True:  LOLName exists
         - False:  LOLName not exists
         '''
         self.__cur.execute("SELECT * FROM line WHERE LOLName=?",[LOLName,])
+        return self.__cur.fetchone()!=None
+    
+    def CheckELORecordExist(self,accountId: str,title: str,sqltime: datetime):
+        '''
+        * Check ELO Record Exist in elo table  
+
+        ### Return
+        - True:  ELO Record exists
+        - False:  ELO Record not exists
+        '''
+        self.__cur.execute("SELECT * FROM elo WHERE accountId=? AND title=? AND sqltime=? ",[accountId,title,sqltime])
         return self.__cur.fetchone()!=None
 
     def GetMissTeamStats(self) -> list:

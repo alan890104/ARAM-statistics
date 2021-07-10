@@ -1,11 +1,15 @@
+from Test import Agent
+import re
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
-    MessageEvent, TextMessage, ImageMessage, FileMessage
+    MessageEvent, TextMessage, ImageMessage, FileMessage,TextSendMessage
 )
 from linebot.models.events import PostbackEvent
+from apscheduler.schedulers.background import BackgroundScheduler
 import AccessGameData as AGD
+import Builder as BLD
 import Database as DB
 import EventHandler as EH
 
@@ -15,6 +19,8 @@ app = Flask(__name__)
 Secrets = AGD.JsonRead("secret/token.json")
 line_bot_api = LineBotApi(Secrets["ChannelAccessToken"])
 handler = WebhookHandler(Secrets["ChanelSecret"])
+scheduler = BackgroundScheduler()
+UPDATE_SIGNAL = False
 
 @app.route("/",methods=["GET","POST"])
 def index():
@@ -42,6 +48,8 @@ def HandleTextMessage(event):
     '''
     ### Handle text message from line except "deadbeef"
     '''
+    global UPDATE_SIGNAL
+    if UPDATE_SIGNAL: return
     if event.source.user_id == "Udeadbeefdeadbeefdeadbeefdeadbeef": return
     Token = event.reply_token
     Reply = EH.CommandResp(event,line_bot_api)
@@ -50,12 +58,16 @@ def HandleTextMessage(event):
 
 @handler.add(PostbackEvent)
 def HandlePostBack(event):
+    global UPDATE_SIGNAL
+    if UPDATE_SIGNAL: return
     Token = event.reply_token
     Reply = EH.PostBackResp(event,line_bot_api)
     line_bot_api.reply_message(Token,Reply)
 
 @handler.add(MessageEvent, message=ImageMessage)
 def HandleImageMessage(event):
+    global UPDATE_SIGNAL
+    if UPDATE_SIGNAL: return
     Token = event.reply_token
     Reply = EH.ImageResp(event,line_bot_api)
     if Reply!=None:
@@ -63,12 +75,34 @@ def HandleImageMessage(event):
 
 @handler.add(MessageEvent, message=FileMessage)
 def HandleFileMessage(event):
+    global UPDATE_SIGNAL
+    if UPDATE_SIGNAL: return
     Token = event.reply_token
     Reply = EH.FileResp(event,line_bot_api)
     if Reply!=None:
         line_bot_api.reply_message(Token,Reply)
 
+@scheduler.scheduled_job("cron",hour='1,13')
+def Update_Version_And_Database() -> None:
+    '''
+    Lock the bot while updating version and DB
+    (1:00 and 13:00 are times to update)
+    '''
+    global UPDATE_SIGNAL
+    UPDATE_SIGNAL = True
+    BLD.UpdateVersion()
+    BLD.UpdateGameTeamTable()
+    UPDATE_SIGNAL = False
+
+@scheduler.scheduled_job("interval",days=5)
+def BackUpDatabase() -> None:
+    '''
+    Copy database to tmp folder every 5 days
+    '''
+    Agent = DB.DBAgent()
+    Agent._Backup()
 
 if __name__ == "__main__":
+    scheduler.start()
     app.run(host="0.0.0.0",port=5000,debug=True)
     # app.run(host="0.0.0.0",port=5000,ssl_context=('secret/cert.pem', 'secret/key.pem'))
