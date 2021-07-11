@@ -1,0 +1,56 @@
+{
+  "type": "carousel",
+  "contents": [
+    {
+      "type": "bubble",
+      "size": "micro",
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "alankingdom",
+                "wrap": true,
+                "weight": "bold",
+                "size": "md",
+                "flex": 0,
+                "align": "center",
+                "color": "#FFFFFF"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "隱藏積分",
+                "wrap": true,
+                "weight": "bold",
+                "size": "md",
+                "flex": 0,
+                "color": "#FFFFFF"
+              }
+            ],
+            "justifyContent": "center"
+          }
+        ],
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "styles": {
+        "body": {
+          "backgroundColor": "#99CCFF"
+        }
+      }
+    }
+  ]
+}

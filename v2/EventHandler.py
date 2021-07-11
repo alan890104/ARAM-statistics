@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Any
 import AccessGameData as AGD
@@ -103,7 +104,13 @@ def PostBackResp(event, line_bot_api: LineBotApi) -> Any:
             return TextSendMessage(text="請將你的Line更新至最新版本，並加我為好友")
         Msg = "用戶{}尚未登錄資料庫, 請先加入此帳號好友並使用指令連動自己的LOL召喚師名稱。範例: @register alankingdom".format(LineName)
         return TextSendMessage(text=Msg)
-    if PBData=="@specialize":
+    if PBData=="@elo":
+        contents = ELOFlexGenerator(LineId,LOLName,Agent)
+        if len(contents)==0:
+            return TextSendMessage(text="目前您的場數不足，因此無法顯示隱分紀錄。")
+        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽隱藏積分",
+                               contents=contents)
+    elif PBData=="@specialize":
         # label : gameDuration,gameMode,teamId,championId
         contents = AGD.JsonRead("layout\Specialize.json")
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽個人優勢",
@@ -150,6 +157,29 @@ def ImageResp(event, line_bot_api: LineBotApi) -> Any:
             for chunk in MsgContent.iter_content():
                 F.write(chunk)
         return TextSendMessage(text="已儲存檔案:{}".format(FileName))
+
+def ELOFlexGenerator(LineId: str,LOLName: str,Agent: DB.DBAgent) -> dict:
+    '''
+    If record not find in database, return an empty dict {}
+    '''
+    contents = AGD.JsonRead("layout\ELO.json")
+    accountId = Agent.GetAccountByLindId(LineId)
+    ELO = Agent.GetLatestELOByAccount(accountId)
+    if len(ELO)==0: return dict()
+    contents["contents"][0]["body"]["contents"][0]["contents"][0]["text"] = LOLName
+    ELO_element_template = AGD.JsonRead("layout\ELO_element.json")
+    RankImg = AGD.JsonRead("static\TierUri.json")
+    for title in ELO:
+        ELO_element = deepcopy(ELO_element_template)
+        ELO_element["body"]["contents"][0]["contents"][0]["text"] = title
+        ELO_element["body"]["contents"][1]["contents"][0]["text"] = "({})".format(ELO[title])
+        Tier_name = AGD.ELOTransform(AGD.Tier,ELO[title])
+        ELO_element["body"]["contents"][2]["contents"][0]["text"] = Tier_name
+        ELO_element["hero"]["url"] = RankImg[Tier_name]
+        contents["contents"].append(ELO_element)
+    return contents
+
+    
 
 def ItemFlexGenerator(LineId: str,LOLName: str,Agent: DB.DBAgent) -> dict:
     contents = AGD.JsonRead("layout\Item.json")

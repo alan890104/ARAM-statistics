@@ -1,0 +1,57 @@
+{
+  "type": "bubble",
+  "size": "micro",
+  "hero": {
+    "type": "image",
+    "size": "xs",
+    "aspectMode": "fit",
+    "url": "https://lolg-cdn.porofessor.gg/img/league-icons-v2/160/9-1.png"
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "sm",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "baseline",
+        "contents": [
+          {
+            "type": "text",
+            "text": "單人/雙排(5v5)",
+            "align": "center"
+          }
+        ],
+        "justifyContent": "center"
+      },
+      {
+        "type": "box",
+        "layout": "baseline",
+        "contents": [
+          {
+            "type": "text",
+            "text": "(1935)",
+            "align": "center",
+            "size": "xxs"
+          }
+        ],
+        "justifyContent": "center"
+      },
+      {
+        "type": "box",
+        "layout": "baseline",
+        "contents": [
+          {
+            "type": "text",
+            "text": "金牌III",
+            "wrap": true,
+            "weight": "bold",
+            "size": "xl",
+            "flex": 0
+          }
+        ],
+        "justifyContent": "center"
+      }
+    ]
+  }
+}

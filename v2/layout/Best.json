@@ -1,123 +1,717 @@
 {
-  "type": "bubble",
-  "hero": {
-    "type": "image",
-    "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn97rqoseqKXlYrgqIKmwVzxikZkDBejg4dQ&usqp=CAU",
-    "size": "full",
-    "aspectRatio": "20:13",
-    "aspectMode": "cover",
-    "backgroundColor": "#FFFFFF"
-  },
-  "body": {
-    "type": "box",
-    "layout": "vertical",
-    "contents": [
-      {
-        "type": "text",
-        "text": "最高紀錄",
-        "weight": "bold",
-        "size": "xl",
-        "margin": "md"
+  "type": "carousel",
+  "contents": [
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSI2xpBUk7UW6mb3Rwwj2e3lHVPXNSSZ_3FBQ&usqp=CAU",
+        "animated": true,
+        "aspectMode": "cover",
+        "size": "full",
+        "aspectRatio": "498:280"
       },
-      {
-        "type": "text",
-        "text": "選擇想要查看的單場限制條件",
-        "margin": "md"
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "baseline",
+            "contents": [
+              {
+                "type": "text",
+                "text": "最高紀錄",
+                "wrap": true,
+                "weight": "bold",
+                "size": "md",
+                "flex": 0,
+                "align": "center",
+                "color": "#FFFFFF"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "styles": {
+        "body": {
+          "backgroundColor": "#FF99CC"
+        }
       }
-    ]
-  },
-  "footer": {
-    "type": "box",
-    "layout": "vertical",
-    "spacing": "sm",
-    "contents": [
-      {
-        "type": "button",
-        "action": {
-          "type": "postback",
-          "data": "@best gameDuration",
-          "label": "遊戲時間"
-        },
-        "height": "sm"
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://s.yimg.com/os/zh-Hant-TW/homerun/upmedia.mg.tw/a11be17943a7acbbaba1f2803e46df2d",
+        "aspectRatio": "498:280",
+        "animated": true,
+        "size": "full",
+        "aspectMode": "cover"
       },
-      {
-        "type": "button",
-        "action": {
-          "type": "postback",
-          "data": "@best totalDamageDealt",
-          "label": "對英雄傷害"
-        },
-        "height": "sm"
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "遊戲時間",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "最久的一場遊戲",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
       },
-      {
-        "type": "button",
-        "action": {
+      "action": {
+        "type": "postback",
+        "data": "@best gameDuration",
+        "displayText": "我就問一句到底誰他媽打一場會超過15分鐘?"
+      },
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://image.garena.tw/wc2015_lol/news/Mobile/2018/20180822/01/Wahaha_Emote.png",
+        "aspectRatio": "498:280",
+        "animated": true,
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "輸出傷害",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場輸出最高",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
+        "type": "postback",
+        "data": "@best totalDamageDealt",
+        "displayText": "誰單場最高輸出王?"
+      },
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://3.bp.blogspot.com/--Gz5tycB19A/Wp8ApkijVJI/AAAAAAAA6c8/wftuFg9syNsvj4ouonde1Cu4S3JKlO21gCLcBGAs/s1600/95553f2253a56802.png",
+        "aspectRatio": "498:280",
+        "animated": true,
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "KDA",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場最高的KDA",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
         "type": "postback",
         "data": "@best kda",
-        "label": "KDA"
-        },
-        "height": "sm"
+        "displayText": "誰單場得到最高的KDA?根本在狗分吧?"
       },
-      {
-        "type": "button",
-        "action": {
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://lh3.googleusercontent.com/proxy/1rCf7vu9gMNuwpOe4f8IH91WRvr7sgUEzWN_QCVbJ2GiNQfQdhQT8byMM0mK0iV_3MJH4MaCyXOTmB8pXzgoGFkHqRdGEhg_PNw0dh-JDy1y7Pg",
+        "aspectRatio": "498:280",
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "視野分數",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場最高視野分數",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
         "type": "postback",
         "data": "@best visionScore",
-        "label": "視野分數"
-        },
-        "height": "sm"
+        "displayText": "到底誰那麼愛買眼==?"
       },
-      {
-        "type": "button",
-        "action": {
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://truth.bahamut.com.tw/s01/202011/eb287c08b5f6624b16376a70fc440747.PNG?w=300",
+        "aspectRatio": "498:280",
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "承受傷害",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場最高承受傷害",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
         "type": "postback",
         "data": "@best totalDamageTaken",
-        "label": "承受傷害"
-        },
-        "height": "sm"
+        "displayText": "挨打大師是誰?"
       },
-      {
-        "type": "button",
-        "action": {
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgLHK1n_19Pv_SPKa-ycWCEMAV__0QXbK6fQ&usqp=CAU",
+        "aspectRatio": "498:280",
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "吃兵數量",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場最高吃兵數",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
         "type": "postback",
         "data": "@best totalMinionsKilled",
-        "label": "吃兵數量"
-        },
-        "height": "sm"
+        "displayText": "哪個戳仔整場都在吃兵阿?"
       },
-      {
-        "type": "button",
-        "action": {
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQh--5u1PJo5U4H6tLY2xWOCgUufMthDwDKPA&usqp=CAU",
+        "aspectRatio": "498:280",
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "獲得金錢",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場最高金錢數",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
         "type": "postback",
         "data": "@best goldEarned",
-        "label": "賺取金錢"
-        },
-        "height": "sm"
+        "displayText": "這人想賺錢想瘋了吧?"
       },
-      {
-        "type": "button",
-        "action": {
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2tKBAl3IcFye8L_9pclV4rksmVdzt2XAFrA&usqp=CAU",
+        "aspectRatio": "498:280",
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "建築傷害",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場最高建築傷害",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
         "type": "postback",
         "data": "@best damageDealtToObjectives",
-        "label": "對建築傷害"
-        },
-        "height": "sm"
+        "displayText": "OK都更大師快來嘟我<3"
       },
-      {
-        "type": "button",
-        "action": {
+      "styles": {
+        "hero": {
+          "separator": true
+        },
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "nano",
+      "hero": {
+        "type": "image",
+        "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLZ66isZWV_TPpdzL5F5OPoAB5rHcT6dAGrw&usqp=CAU",
+        "aspectRatio": "498:280",
+        "size": "full",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "控場分數",
+                    "wrap": true,
+                    "weight": "bold",
+                    "size": "md",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#FFFFFF"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "單場最高控場分數",
+                    "wrap": true,
+                    "weight": "regular",
+                    "size": "xxs",
+                    "flex": 0,
+                    "align": "center",
+                    "color": "#aaaaaa"
+                  }
+                ],
+                "justifyContent": "center",
+                "position": "relative"
+              }
+            ],
+            "justifyContent": "space-evenly"
+          }
+        ],
+        "backgroundColor": "#000000"
+      },
+      "action": {
         "type": "postback",
         "data": "@best timeCCingOthers",
-        "label": "控場分數"
+        "displayText": "警察鼠叔，就是這個控制狂><"
+      },
+      "styles": {
+        "hero": {
+          "separator": true
         },
-        "height": "sm"
+        "footer": {
+          "separator": true
+        }
       }
-    ],
-    "flex": 0
-  },
-  "styles": {
-    "footer": {
-      "separator": true
     }
-  }
+  ]
 }

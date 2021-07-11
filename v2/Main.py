@@ -93,12 +93,8 @@ def Update_Version_Game_Team_EVERY_DAY() -> None:
     BLD.UpdateGameTeamTable()
     UPDATE_SIGNAL = False
 
-@scheduler.scheduled_job("cron",day_of_week="sun",hour=13)
+@scheduler.scheduled_job("cron",day_of_week="sun",hour=9)
 def Update_ELO_EVERY_SUN() -> None:
-    '''
-    Lock the bot while updating version and DB
-    (1:00 and 13:00 are times to update)
-    '''
     global UPDATE_SIGNAL
     UPDATE_SIGNAL = True
     BLD.UpdateELO()
@@ -112,10 +108,10 @@ def BackUpDatabase_EVERY_FIVE_DAYS() -> None:
     Agent = DB.DBAgent()
     Agent._Backup()
 
-@app.route('/rankimg/<path:filename>', methods=['GET', 'POST'])
-def PictureProvider(filename):
-    uploads = os.path.join(app.root_path,"static\Rank")
-    return send_from_directory(directory=uploads, filename=filename)
+# @app.route('/rankimg/<path:filename>', methods=['GET', 'POST'])
+# def PictureProvider(filename):
+#     uploads = os.path.join(app.root_path,"static\Rank")
+#     return send_from_directory(directory=uploads, filename=filename)
 
 if __name__ == "__main__":
     # scheduler.start()

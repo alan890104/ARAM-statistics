@@ -3,6 +3,70 @@
   "contents": [
     {
       "type": "bubble",
+      "size": "kilo",
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "md",
+        "contents": [
+          {
+            "type": "text",
+            "wrap": true,
+            "weight": "bold",
+            "gravity": "center",
+            "size": "xl",
+            "text": "隱藏積分"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "margin": "lg",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  {
+                    "type": "text",
+                    "color": "#aaaaaa",
+                    "size": "sm",
+                    "flex": 1,
+                    "text": "在英雄聯盟不同模式中的等級分"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "button",
+            "action": {
+              "type": "postback",
+              "data": "@elo",
+              "label": "我是不是該爬分了?",
+              "displayText": "我的隱分是不是已經屌虐了啊?"
+            }
+          }
+        ],
+        "paddingBottom": "xs",
+        "paddingTop": "xs"
+      },
+      "styles": {
+        "footer": {
+          "separator": true
+        }
+      }
+    },
+    {
+      "type": "bubble",
+      "size": "kilo",
       "body": {
         "type": "box",
         "layout": "vertical",
@@ -49,7 +113,8 @@
             "action": {
               "type": "postback",
               "data": "@specialize",
-              "label": "有哪些類別?"
+              "label": "有哪些類別?",
+              "displayText": "笑死 我每個都最強還要比喔?"
             }
           }
         ],
@@ -64,6 +129,7 @@
     },
     {
       "type": "bubble",
+      "size": "kilo",
       "body": {
         "type": "box",
         "layout": "vertical",
@@ -110,7 +176,8 @@
             "action": {
               "type": "postback",
               "data": "@best",
-              "label": "有哪些最佳紀錄?"
+              "label": "有哪些最佳紀錄?",
+              "displayText": "痾?最強紀錄?我猜都是alankingdom吧?"
             }
           }
         ],
@@ -125,6 +192,7 @@
     },
     {
       "type": "bubble",
+      "size": "kilo",
       "body": {
         "type": "box",
         "layout": "vertical",
@@ -171,7 +239,8 @@
             "action": {
               "type": "postback",
               "data": "@item",
-              "label": "我挑裝備的眼光應該不錯吧?"
+              "label": "我挑裝備的眼光應該不錯吧?",
+              "displayText": "誰他媽最愛裝備是蒐集者我一定拖出來打=="
             }
           }
         ],
@@ -186,6 +255,7 @@
     },
     {
       "type": "bubble",
+      "size": "kilo",
       "body": {
         "type": "box",
         "layout": "vertical",
@@ -212,7 +282,7 @@
                 "contents": [
                   {
                     "type": "text",
-                    "text": "你在英雄聯盟中度過的遊戲時間(不包含匹配)",
+                    "text": "你在英雄聯盟中度過的遊戲時間",
                     "color": "#aaaaaa",
                     "size": "sm",
                     "flex": 1
@@ -232,7 +302,8 @@
             "action": {
               "type": "postback",
               "data": "@time",
-              "label": "我到底花了多少時間?"
+              "label": "我到底花了多少時間?",
+              "displayText": "唉 我再花兩倍的時間應該就爬上銅牌了吧?"
             }
           }
         ],
