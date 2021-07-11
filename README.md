@@ -15,6 +15,16 @@
     |玩家 *<玩家名稱>* 分析|更為深入的玩家數據轉換|
     |玩家 *<玩家名稱>* 隱分|玩家在不同模式中的隱分|
 
+## 圖例
+* echo   
+    ![@ehco](https://github.com/alan890104/ARAM-statistics/blob/master/v2/Image/welcome.png)   
+* best   
+    ![@best](https://github.com/alan890104/ARAM-statistics/blob/master/v2/Image/best.png)   
+* item   
+    ![@item](https://github.com/alan890104/ARAM-statistics/blob/master/v2/Image/item.png)   
+* time   
+    ![@time](https://github.com/alan890104/ARAM-statistics/blob/master/v2/Image/time.png)   
+
 ## 主架構
 * <font color="green">綠色</font>未完成 <font color="red">紅色</font>待修改 <font color="orange">橘色</font>重點項目
 ```graphviz
@@ -29,7 +39,7 @@ digraph hierarchy {
 		遊戲內資訊->{英雄資訊 版本快訊}
 		玩家資訊->{隱分趨勢 對戰分析 對戰預測 浪費人生計算機}
         英雄資訊->{選用率[color="red"] 勝率[color="red"] 推薦裝備[color="red"]}
-        對戰分析->{個人強勢英雄[color="red"] 愛用道具[color="red"] 當季最佳紀錄[color="red"] 找剪頭仔[color="red"]}
+        對戰分析->{個人強勢英雄 愛用道具 當季最佳紀錄 找剪頭仔[color="red"]}
 		{rank=same;英雄資訊 版本快訊[color="red"] 隱分趨勢[color="red"] 對戰分析 對戰預測[color="green"]}  // Put them on the same level
 }
 ```
@@ -57,7 +67,7 @@ digraph hierarchy {
 - [ ] 機器學習勝率預測模型改良
 
 ## Line前端介面
-- [ ] Button Message  
+- [X] FLEX Message  
 
 ## Documentation
 * 使用者資料表  
@@ -77,10 +87,14 @@ CREATE TABLE line(
 * 隱藏積分資料表  
 ```sql
 CREATE TABLE elo(
-    accountId TEXT PRIMARY KEY,
-    gameMode TEXT NOT NULL, //哪種模式 ex: ARAM
+    accountId TEXT NOT NULL,
+    title TEXT NOT NULL, //哪種模式(這是中文 會跟其他的table不一樣)
     score INT NOT NULL, //隱分分數
-    sqltime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL //更新的時間   
+    sqltime DATETIME NOT NULL, //更新的時間   
+    PRIMARY KEY(accountId,gameMode,sqltime),
+    FOREIGN KEY (accoundId) REFERENCES users (accoundId)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE )
 )
 ```
 * 遊玩歷史紀錄資料表  
