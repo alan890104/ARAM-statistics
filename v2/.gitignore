@@ -10,5 +10,4 @@ tmp
 !layout/*.json
 Pytessesract
 OCR.py
-Image
 tmp.html
