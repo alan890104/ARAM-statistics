@@ -57,7 +57,7 @@ def CommandResp(event, line_bot_api: LineBotApi) -> Any:
             else:
                 Agent._InsertLine([ LineId, Content[10:].strip() ])
                 LOLName = Agent.GetLOLNameByLineId(LineId)
-                Msg = "用戶{}註冊成功!你的召喚師名稱是:{}".format(LineName,LOLName)   
+                Msg = "用戶{}註冊成功!你的召喚師名稱是:{}。接著，你可以試著輸入@echo來呼叫使用者介面。".format(LineName,LOLName)   
                 return TextSendMessage(text=Msg)
         else:
             Msg = "{}，你已經註冊過帳號了!你的召喚師名稱是:{}".format(LineName,LOLName)
@@ -70,8 +70,8 @@ def CommandResp(event, line_bot_api: LineBotApi) -> Any:
             LineName = profile.display_name
             print(LineId,LineName)
         except:
-            return TextSendMessage(text="請將你的Line更新至最新版本，並加我為好友")
-        Msg = "用戶{}尚未登錄資料庫, 請先加入此帳號好友並使用指令連動自己的LOL召喚師名稱。範例: @register alankingdom".format(LineName)
+            return TextSendMessage(text="請將你的Line更新至最新版本，並加我為好友。隨後請輸入任意文字，我將提供協助。")
+        Msg = "由於用戶{}尚未登錄資料庫, 請使用指令連動自己的LOL召喚師名稱。範例: @register alankingdom".format(LineName)
         return TextSendMessage(text=Msg)
     
     if Content[:5]=="@echo":
@@ -108,8 +108,8 @@ def PostBackResp(event, line_bot_api: LineBotApi) -> Any:
         contents = ELOFlexGenerator(LineId,LOLName,Agent)
         if len(contents)==0:
             return TextSendMessage(text="目前您的場數不足，因此無法顯示隱分紀錄。")
-        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽隱藏積分",
-                               contents=contents)
+        return [FlexSendMessage(alt_text="請使用智慧型裝置瀏覽隱藏積分",
+                               contents=contents),QuickReplyGenerator()]
     elif PBData=="@specialize":
         # label : gameDuration,gameMode,teamId,championId
         contents = AGD.JsonRead("layout\Specialize.json")
@@ -117,8 +117,8 @@ def PostBackResp(event, line_bot_api: LineBotApi) -> Any:
                                contents=contents)
     elif PBData=="@item":
         contents = ItemFlexGenerator(LineId,LOLName,Agent)
-        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最愛道具",
-                               contents=contents)
+        return [FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最愛道具",
+                               contents=contents),QuickReplyGenerator()]
     elif PBData=="@best":
         # label : gameDuration,totalDamageDealt,kda,visionScore,totalDamageTaken,totalMinionsKilled,goldEarned,damageDealtToObjectives,timeCCingOthers
         contents = AGD.JsonRead("layout\Best.json")
@@ -126,16 +126,16 @@ def PostBackResp(event, line_bot_api: LineBotApi) -> Any:
                                contents=contents)
     elif PBData=="@time":
         contents = TimeFlexGenerator(LineId,LOLName,Agent)
-        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽花費時間",
-                               contents=contents)
+        return [FlexSendMessage(alt_text="請使用智慧型裝置瀏覽花費時間",
+                               contents=contents),QuickReplyGenerator()]
     elif PBData[:11]=="@specialize":
         contents = SpecializeOptionFlexGenerator(LineId,LOLName,PBData[12:],Agent)
-        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
-                            contents=contents)
+        return [FlexSendMessage(alt_text="請使用智慧型裝置瀏覽個人優勢",
+                            contents=contents),QuickReplyGenerator(backto="@specialize")]
     elif PBData[:5]=="@best":
         contents = BestOptionFlexGenerator(PBData[6:],Agent)
-        return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
-                            contents=contents)
+        return [FlexSendMessage(alt_text="請使用智慧型裝置瀏覽最佳紀錄",
+                            contents=contents),QuickReplyGenerator(backto="@best")]
             
 def FileResp(event, line_bot_api: LineBotApi) -> Any:
     LineId = event.source.user_id
@@ -157,6 +157,24 @@ def ImageResp(event, line_bot_api: LineBotApi) -> Any:
             for chunk in MsgContent.iter_content():
                 F.write(chunk)
         return TextSendMessage(text="已儲存檔案:{}".format(FileName))
+
+def QuickReplyGenerator(backto: str=None) ->  TextSendMessage:
+    '''
+    send post action if you're in @specialize... or @best...
+    '''
+    items = [QuickReplyButton(action=MessageAction(label="不用了", text="不用了謝謝"))]
+    if backto=="@specialize":
+        items.append( QuickReplyButton(action=PostbackAction(label="個人優勢", text="人家想繼續看個人優勢:)",data="@specialize")) )
+    if backto=="@best":
+        items.append( QuickReplyButton(action=PostbackAction(label="最佳紀錄", text="人家想繼續看最佳紀錄:)",data="@best")) )
+    if backto==None:
+        items.append(QuickReplyButton(action=MessageAction(label="好啊", text="@echo")))
+    else:
+        items.append(QuickReplyButton(action=MessageAction(label="回主選單", text="@echo")))
+    QuickReplyObj = QuickReply(items=items)
+    return TextSendMessage(
+                    text="你是否要繼續查看其他內容呢?",
+                    quick_reply=QuickReplyObj)
 
 def ELOFlexGenerator(LineId: str,LOLName: str,Agent: DB.DBAgent) -> dict:
     '''
@@ -314,4 +332,3 @@ def BestOptionFlexGenerator(PBData: str,Agent: DB.DBAgent) -> dict:
     contents["contents"][0]["footer"]["contents"][0]["action"]["uri"] = game_url
 
     return contents
-    

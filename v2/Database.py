@@ -605,7 +605,7 @@ class DBAgent():
 
     def GetMAXAttribute(self,attribute:str, **kwargs):
         '''
-        Accept one attribute to show the best score in database
+        Accept one attribute to show the best score in CLASSIC AND ARAM MODE
         ### Parameter
         - attribute: The attribute of the best RECORD you want to know. Can be sql aggregate command.
         ### Return
@@ -613,7 +613,8 @@ class DBAgent():
         '''
         attribute = attribute.strip()
         self.__cur.execute("SELECT accountId,LOLName,MAX(records) as record, gameId, gameCreation,championId  FROM (\
-            SELECT accountId,LOLName, MAX({}) as records, gameId, gameCreation, championId FROM game NATURAL JOIN users GROUP BY LOLName ORDER BY gameCreation ASC) ".format(attribute))
+            SELECT accountId,LOLName, MAX({}) as records, gameId, gameCreation, championId FROM game NATURAL JOIN users WHERE game.gameMode in ('CLASSIC','ARAM')\
+            GROUP BY LOLName ORDER BY gameCreation ASC) ".format(attribute))
         result = self.__cur.fetchone()
         if "gameDuration"!=attribute:
             return {"record": result["record"],"accountId":result["accountId"],"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}

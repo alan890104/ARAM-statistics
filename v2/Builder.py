@@ -152,7 +152,7 @@ def UpdateGameTeamTable(Agent: Database.DBAgent, amount: int=20, logging: bool=F
         detail = AGD.GetSingleGameDetail(gameId)
         TeamStats =  AGD.GameDetailReader(detail).format_list()
         Agent._InsertTeamStats(TeamStats)
-        time.sleep(0.3)
+        time.sleep(0.5)
 
     # Update users table
     for id in UserDict:
@@ -199,4 +199,5 @@ def UpdateELO() -> None:
 if __name__=="__main__":
     Agent = DB.DBAgent()
     UpdateGameTeamTable(Agent)
+    Agent._Backup()
     # UpdateELO()
