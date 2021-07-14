@@ -1,7 +1,8 @@
 import os
 from copy import deepcopy
 from datetime import datetime, timedelta
-from typing import Any
+from sqlite3.dbapi2 import paramstyle
+from typing import Any, Text
 import AccessGameData as AGD
 import Database as DB
 from linebot import LineBotApi
@@ -51,7 +52,7 @@ def CommandResp(event, line_bot_api: LineBotApi) -> Any:
             return TextSendMessage(text="請將你的Line更新至最新版本，並加我為好友")
         LOLName = Agent.GetLOLNameByLineId(LineId)
         if not LOLName:
-            if Agent.CheckLOLNameExist(LOLName):
+            if Agent.CheckLOLNameExistInLine(LOLName):
                 Msg = "請勿輸入他人的召喚師名稱。"
                 return TextSendMessage(text=Msg)
             else:
@@ -84,7 +85,44 @@ def CommandResp(event, line_bot_api: LineBotApi) -> Any:
         contents = AGD.JsonRead("layout\WelcomeInterface.json")
         return FlexSendMessage(alt_text="請使用智慧型裝置瀏覽此訊息",
                                contents=contents)
-
+    elif Content[:5]=="@help":
+        Title = Content[6:].strip()
+        if Title=="玩家近況":
+            LOLName = Agent.GetLOLNameByLineId(LineId)
+            items = [QuickReplyButton(action=MessageAction(label="我的近況", text="玩家近況 {}".format(LOLName)))]
+            return TextSendMessage(text="輸入: 玩家近況  <召喚師名稱>，就可以查詢了!會對你最近20場超過15分鐘的NG場進行分析，也可以查詢不在此群組的人喔!",quick_reply=QuickReply(items=items))
+    elif Content[:4]=="玩家近況":
+        LOLName = Content[5:].strip()
+        if not Agent.GetAccountIdByName(LOLName):
+            accountId = AGD.GetAccountID(LOLName)
+            if not accountId:
+                items = [QuickReplyButton(action=MessageAction(label="查看說明", text="@help 玩家近況".format(LOLName)))]
+                return TextSendMessage(text="名稱{}不存在，請檢查是否輸入錯誤。".format(LOLName),quick_reply=QuickReply(items=items))
+            history = AGD.GetPlayerHistory(accountId)
+            result = AGD.HistoryReader(history).Analyze_Recent_x_Games()
+            ChampName = AGD.JsonRead("static\champion.json")
+            LaneName = AGD.JsonRead("static\laneTrans.json")
+            result["championId"] = ChampName[str(result["championId"])][1]
+            result["lane"] = LaneName[result["lane"]]
+            param = [LOLName]
+            param.extend(list(result.values()))
+            s = "玩家{}分析:\n場均KDA: {}\n場均視野分: {}\n場均勝率: {}\n首殺率: {}\n常用英雄: {} \n最愛路線: {}".format(*param)
+            return [TextSendMessage(text="由於此玩家未在資料庫，因此近20場數據未經過濾(包含各種模式、提早投降)，此分析較為粗略。")
+                    ,TextSendMessage(text=s)]
+        else:
+            accountId = Agent.GetAccountIdByName(LOLName)
+            result = Agent.Analyze_Recent_x_Games(accountId)
+            if len(result)==0:
+                return TextSendMessage(text="玩家{}數據不足。(需求條件為最近20場15分鐘以上的NG)")
+            ChampName = AGD.JsonRead("static\champion.json")
+            LaneName = AGD.JsonRead("static\laneTrans.json")
+            result["championId"] = ChampName[str(result["championId"])][1]
+            result["lane"] = LaneName[result["lane"]]
+            param = [LOLName]
+            param.extend(list(result.values()))
+            s = "玩家{}分析:\n場均KDA: {}\n場均擊殺參與率: {}\n場均拆塔率: {}\n場均視野分: {}\n場均勝率: {}\n首殺率: {}\n常用英雄: {}\n最愛路線: {}".format(*param)
+            items = [QuickReplyButton(action=MessageAction(label="回到主選單", text="@echo".format(LOLName)))]
+            return TextSendMessage(text=s,quick_reply=QuickReply(items=items))
     return None
 
 def PostBackResp(event, line_bot_api: LineBotApi) -> Any:

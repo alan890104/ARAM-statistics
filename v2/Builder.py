@@ -199,5 +199,5 @@ def UpdateELO() -> None:
 if __name__=="__main__":
     Agent = DB.DBAgent()
     UpdateGameTeamTable(Agent)
-    Agent._Backup()
+    # Agent._Backup()
     # UpdateELO()

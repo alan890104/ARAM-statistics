@@ -315,6 +315,68 @@
           "separator": true
         }
       }
+    },
+    {
+      "type": "bubble",
+      "size": "kilo",
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "md",
+        "contents": [
+          {
+            "type": "text",
+            "wrap": true,
+            "weight": "bold",
+            "gravity": "center",
+            "size": "xl",
+            "text": "玩家近況分析"
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "margin": "lg",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "最近20場15分鐘以上的NG的統計數據",
+                    "color": "#aaaaaa",
+                    "size": "sm",
+                    "flex": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "button",
+            "action": {
+              "type": "message",
+              "label": "查看統計數據",
+              "text": "@help 玩家近況"
+            }
+          }
+        ],
+        "paddingBottom": "xs",
+        "paddingTop": "xs"
+      },
+      "styles": {
+        "footer": {
+          "separator": true
+        }
+      }
     }
   ]
 }

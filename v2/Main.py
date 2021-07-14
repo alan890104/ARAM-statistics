@@ -108,10 +108,11 @@ def BackUpDatabase_EVERY_FIVE_DAYS() -> None:
     Agent = DB.DBAgent()
     Agent._Backup()
 
-# @app.route('/rankimg/<path:filename>', methods=['GET', 'POST'])
-# def PictureProvider(filename):
-#     uploads = os.path.join(app.root_path,"static\Rank")
-#     return send_from_directory(directory=uploads, filename=filename)
+@app.route('/<path:filename>', methods=['GET', 'POST'])
+def PictureProvider(filename):
+    return send_from_directory(directory=os.getcwd(),filename=filename)
+    # uploads = os.path.join(app.root_path,"static\Rank")
+    # return send_from_directory(directory=uploads, filename=filename)
 
 if __name__ == "__main__":
     # scheduler.start()

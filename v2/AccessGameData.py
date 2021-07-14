@@ -2,6 +2,7 @@
 '''
 https://github.com/nxhdev2002/checkLOLMatchHistory/blob/9a005e76791acf13ce71017f71ffaa0cff364413/lolmatchhistory.js
 '''
+from collections import defaultdict
 import os
 import json
 from sys import int_info, version
@@ -268,6 +269,40 @@ class HistoryReader():
             game_info.append(g.participants.timeline.lane)
             game_list.append(game_info)
         return game_list   
+    def Analyze_Recent_x_Games(self) -> dict:
+        '''
+        ### Returns:
+
+        - avg_kda
+        - avg_visionScore
+        - avg_winrate
+        - avg_firstblood
+        - championId
+        - lane
+        '''
+        gameCount = len(self.games.games)
+        result = self.format_list()
+        ReturnDict = {"avg_kda":0,"avg_visionScore":0,"avg_winrate":0,"avg_firstblood":0,"championId":"","lane":""}
+        # champcount = defaultdict(int)
+        # lane = defaultdict(int)
+        for game in result:
+            ReturnDict["avg_kda"] += (game[11]+game[13])/(game[12] if game[12]!=0 else 1)
+            ReturnDict["avg_visionScore"] += game[27]
+            ReturnDict["avg_winrate"] += int(game[9])
+            ReturnDict["avg_firstblood"] += int(game[32])
+            # champcount[game[8]]+=1
+            # lane[game[36]]+=1
+        champList = [_[8] for _ in result]
+        laneList = [_[36] for _ in result]
+        championId = max(champList,key=champList.count)
+        lane = max(laneList,key=laneList.count)
+        ReturnDict["avg_kda"] = str(round(ReturnDict["avg_kda"]/gameCount,2))
+        ReturnDict["avg_visionScore"] = str(round(ReturnDict["avg_visionScore"]/gameCount,2))
+        ReturnDict["avg_winrate"] = str(round(ReturnDict["avg_winrate"]*100/gameCount,2))+"%"
+        ReturnDict["avg_firstblood"] = str(round(ReturnDict["avg_firstblood"]*100/gameCount,2))+"%"
+        ReturnDict["championId"] = championId
+        ReturnDict["lane"] = lane
+        return ReturnDict
     def result(self) -> list:
         '''Win or Lose list of all games'''
         return [self.games.games[x].participants.stats.win for x in range(self.__len__())]

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from AccessGameData import GetVersion, JsonRead
 import os,shutil
 import typing
@@ -206,7 +207,7 @@ class DBAgent():
         self.__cur.execute("SELECT * FROM game WHERE accountId=? AND gameId=?",[accountId,gameId,])
         return self.__cur.fetchone()!=None
 
-    def CheckLOLNameExist(self, LOLName: str) -> bool:
+    def CheckLOLNameExistInLine(self, LOLName: str) -> bool:
         '''
         * Check LOL Name Exist in line  
         
@@ -261,8 +262,12 @@ class DBAgent():
             raise Exception("\033[91m Table '{}' do not exist. \033[0m".format(TableName))
 
     def GetAccountIdByName(self, LOLName: str) -> int:
+        '''
+        Get LOL accountId by lol name
+        '''
         self.__cur.execute("SELECT accountId FROM users WHERE LOLName=? ",[LOLName,])
-        return self.__cur.fetchone()["accountId"]
+        result = self.__cur.fetchone()
+        return result["accountId"] if result!=None else None
     
     def GetUserDict(self, reverse=False) -> dict:
         '''
@@ -621,6 +626,42 @@ class DBAgent():
         else:
             return {"record": str(timedelta(seconds=result["record"])),"accountId":result["accountId"],"LOLName":result["LOLName"],"gameId":result["gameId"],"gameCreation":(datetime.utcfromtimestamp(result['gameCreation']/1000)+timedelta(hours=8)).strftime("%Y/%m/%d %H:%M:%S"),"championId":result["championId"]}
 
+    def Analyze_Recent_x_Games(self,accountId: str,amount: int=20) -> dict:
+        '''
+        ### MAY RETURN {} IF LESS THAN <amount> games
+        Analyzing User Recently x games. DEFAULT: 20
+        ### Returns:
+        - avg_kda
+        - avg_kill_participate
+        - avg_tower_percent
+        - avg_visionScore
+        - avg_winrate
+        - avg_firstblood
+        - championId
+        - lane
+        '''
+        self.__cur.execute("SELECT gameId FROM game WHERE accountId=? AND gameMode='CLASSIC' AND gameDuration>=900 ORDER BY gameCreation DESC LIMIT {}".format(amount),[accountId])
+        gameIds = [ _["gameId"] for _ in self.__cur.fetchall()]
+        if len(gameIds)<amount:
+            return dict()
+        param = [accountId]
+        param.extend(gameIds)
+        self.__cur.execute("SELECT ROUND(AVG(CAST(kills+assists AS FLOAT)/kills),2) AS avg_kda, \
+            ROUND(CAST(SUM(kills+assists) AS FLOAT)*100/SUM(totalKills),2) AS avg_kill_participate,\
+            ROUND(CAST(SUM(buildingKills) AS FLOAT)*100/SUM(towerKills+inhibitorKills),2) AS avg_tower_percent,\
+            ROUND(CAST(SUM(visionScore) AS FLOAT)/COUNT(visionScore),2) AS avg_visionScore,\
+            ROUND(CAST(SUM(win) AS FLOAT)*100/COUNT(win),2) AS avg_winrate,\
+            ROUND(CAST(SUM(firstBloodKill) AS FLOAT)*100/COUNT(firstBloodKill),2) AS avg_firstblood \
+            FROM game as a INNER JOIN teamstats as b ON a.gameId=b.gameId AND a.teamId=b.teamId\
+            WHERE a.accountId=? AND a.gameId IN ({}) ".format(','.join('?'*len(gameIds))),param)
+        result = self.__cur.fetchone()
+        result = {_:str(result[_])+"%" if _ not in ('avg_kda','avg_visionScore') else str(result[_]) for _ in result}
+        self.__cur.execute("SELECT MAX(times),championId,lane FROM (SELECT COUNT(*) AS times,lane,championId FROM game WHERE accountId=? AND gameId IN ({}) GROUP BY championId,lane)".format(','.join('?'*len(gameIds))),param)
+        ans = self.__cur.fetchone()
+        result["championId"] = ans["championId"]
+        result["lane"] = ans["lane"]
+        return result
+
 def _tWinRate():
     Agent = DBAgent()
     UserDict = Agent.GetUserDict()
@@ -755,6 +796,16 @@ def _tGetELO():
             for gameMode in result:
                 print(gameMode,ELOTransform(Tier,result[gameMode]),result[gameMode])
             print()
+
+def _tRecent20Games():
+    Agent = DBAgent()
+    UserDict = Agent.GetUserDict()
+    for accountId in UserDict:
+        # accountId = Agent.GetAccountByLindId(LineId)
+        result = Agent.Analyze_Recent_x_Games(accountId)
+        if len(result)>0:
+            print(UserDict[accountId])
+            print(result)
 
 if __name__ == "__main__":
     pass
