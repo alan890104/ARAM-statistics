@@ -12,8 +12,6 @@
     |-----|----|
     |@register **<玩家名稱>** |連結LINE帳號與召喚師名稱|
     |@echo|呼叫使用者功能列表|
-    |玩家 *<玩家名稱>* 分析|更為深入的玩家數據轉換|
-    |玩家 *<玩家名稱>* 隱分|玩家在不同模式中的隱分|
 
 ## 圖例
 * echo   
@@ -38,9 +36,9 @@ digraph hierarchy {
 		Line應用程式->{遊戲內資訊  玩家資訊[color="orange"] }
 		遊戲內資訊->{英雄資訊 版本快訊}
 		玩家資訊->{隱分趨勢 對戰分析 對戰預測 浪費人生計算機}
-        英雄資訊->{選用率[color="red"] 勝率[color="red"] 推薦裝備[color="red"]}
-        對戰分析->{個人強勢英雄 愛用道具 當季最佳紀錄 找剪頭仔[color="red"]}
-		{rank=same;英雄資訊 版本快訊[color="red"] 隱分趨勢[color="red"] 對戰分析 對戰預測[color="green"]}  // Put them on the same level
+        英雄資訊->{選用率[color="black"] 勝率[color="black"] 推薦裝備[color="black"]}
+        對戰分析->{個人強勢英雄 愛用道具 當季最佳紀錄 找剪頭仔[color="black"]}
+		{rank=same;英雄資訊 版本快訊[color="black"] 隱分趨勢[color="black"] 對戰分析 對戰預測[color="red"]}  // Put them on the same level
 }
 ```
 ## 設計宗旨
@@ -62,14 +60,14 @@ digraph hierarchy {
 - [x] 個人強勢英雄計算與輸出 
 - [x] 愛用道具計算與輸出
 - [x] 當季最佳紀錄計算與輸出
-- [ ] 隨機冷知識(?  你知道嗎?alankingdom在藍方的勝率更高!隱分和藍紅兩方的關係?
-- [ ] pytesseract轉換圖像中文字 以利預測
-- [ ] 機器學習勝率預測模型改良
+- [x] 隨機冷知識(?  你知道嗎?alankingdom在藍方的勝率更高!隱分和藍紅兩方的關係?
+- [x] pytesseract轉換圖像中文字 以利預測(尚未上傳)
+- [x] 機器學習勝率預測模型改良(尚未上傳)
 
 ## Line前端介面
 - [X] FLEX Message  
 
-## Documentation
+## Tables
 * 使用者資料表  
 ```sql
 CREATE TABLE users(
